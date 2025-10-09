@@ -1,7 +1,7 @@
 {
   "name": "@capgo/capacitor-media-session",
-  "version": "0.0.1",
-  "description": "Expose media session controls for Capacitor apps",
+  "version": "7.0.0",
+  "description": "Capacitor plugin to expose media session controls of the device",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
