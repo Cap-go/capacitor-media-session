@@ -11,14 +11,81 @@
   </head>
   <body>
     <main>
-      <h1>Capacitor Test Plugin Project</h1>
+      <h1>Capgo Media Session Demo</h1>
       <p>
-        This project can be used to test out the functionality of your plugin. Nothing in the
-        <em>example-app/</em> folder will be published to npm when using this template, so you can create away!
+        Use the controls below to drive each API exposed by
+        <code>@capgo/capacitor-media-session</code>.
       </p>
-      <label for="echoInput">Echo Text:</label>
-      <input type="text" id="echoInput" name="echoInput" value="Hello World!" />
-      <button onclick="testEcho()">Click Me!</button>
+
+      <section>
+        <h2>Metadata</h2>
+        <div>
+          <label for="metadataTitle">Title</label>
+          <input id="metadataTitle" type="text" value="Demo Track" />
+        </div>
+        <div>
+          <label for="metadataArtist">Artist</label>
+          <input id="metadataArtist" type="text" value="Capgo" />
+        </div>
+        <div>
+          <label for="metadataAlbum">Album</label>
+          <input id="metadataAlbum" type="text" value="Sample Album" />
+        </div>
+        <div>
+          <label for="metadataArtwork">Artwork URL</label>
+          <input id="metadataArtwork" type="url" value="https://placehold.co/512x512" />
+        </div>
+        <button id="applyMetadataBtn" type="button">Update Metadata</button>
+      </section>
+
+      <section>
+        <h2>Playback State</h2>
+        <label for="playbackStateSelect">State</label>
+        <select id="playbackStateSelect">
+          <option value="none">None</option>
+          <option value="paused">Paused</option>
+          <option value="playing" selected>Playing</option>
+        </select>
+        <button id="applyPlaybackStateBtn" type="button">Update Playback State</button>
+      </section>
+
+      <section>
+        <h2>Action Handlers</h2>
+        <p>Select the actions you want to subscribe to. Events are logged below.</p>
+        <div>
+          <label><input type="checkbox" class="action-toggle" value="play" checked /> Play</label>
+          <label><input type="checkbox" class="action-toggle" value="pause" checked /> Pause</label>
+          <label><input type="checkbox" class="action-toggle" value="seekbackward" /> Seek Backward</label>
+          <label><input type="checkbox" class="action-toggle" value="seekforward" /> Seek Forward</label>
+          <label><input type="checkbox" class="action-toggle" value="previoustrack" /> Previous Track</label>
+          <label><input type="checkbox" class="action-toggle" value="nexttrack" /> Next Track</label>
+          <label><input type="checkbox" class="action-toggle" value="seekto" /> Seek To</label>
+          <label><input type="checkbox" class="action-toggle" value="stop" /> Stop</label>
+        </div>
+        <button id="resetHandlersBtn" type="button">Clear Handlers</button>
+      </section>
+
+      <section>
+        <h2>Position State</h2>
+        <div>
+          <label for="positionDuration">Duration (seconds)</label>
+          <input id="positionDuration" type="number" min="0" value="240" />
+        </div>
+        <div>
+          <label for="positionPlaybackRate">Playback Rate</label>
+          <input id="positionPlaybackRate" type="number" min="0" step="0.1" value="1" />
+        </div>
+        <div>
+          <label for="positionCurrent">Current Position (seconds)</label>
+          <input id="positionCurrent" type="number" min="0" value="0" />
+        </div>
+        <button id="applyPositionStateBtn" type="button">Update Position State</button>
+      </section>
+
+      <section>
+        <h2>Event Log</h2>
+        <pre id="logOutput"></pre>
+      </section>
     </main>
 
     <script src="./js/example.js" type="module"></script>
