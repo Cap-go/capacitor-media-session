@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@capacitor/core": "latest",
-    "@capgo/media-session": "file:..",
+    "@capgo/capacitor-media-session": "file:..",
     "@capacitor/ios": "7.0.0",
     "@capacitor/android": "7.0.0"
   },

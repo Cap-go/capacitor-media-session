@@ -1,5 +1,5 @@
 {
-  "name": "@capgo/media-session",
+  "name": "@capgo/capacitor-media-session",
   "version": "0.0.1",
   "description": "Expose media session controls for Capacitor apps",
   "main": "dist/plugin.cjs.js",

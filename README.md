@@ -1,4 +1,4 @@
-# @capgo/media-session
+# @capgo/capacitor-media-session
  <a href="https://capgo.app/"><img src='https://raw.githubusercontent.com/Cap-go/capgo/main/assets/capgo_banner.png' alt='Capgo - Instant updates for capacitor'/></a>
 
 <div align="center">
@@ -10,7 +10,7 @@ Expose media session controls for Capacitor apps
 ## Install
 
 ```bash
-npm install @capgo/media-session
+npm install @capgo/capacitor-media-session
 npx cap sync
 ```
 
