@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MediaSessionService extends Service {
+
     private static final String TAG = "MediaSessionService";
     private static final String CHANNEL_ID = "playback";
     private static final int NOTIFICATION_ID = 1;
@@ -48,8 +49,9 @@ public class MediaSessionService extends Service {
         "seekto",
         "stop"
     };
-    private final Set<String> possibleCompactViewActions =
-        new HashSet<>(Arrays.asList("previoustrack", "play", "pause", "nexttrack", "stop"));
+    private final Set<String> possibleCompactViewActions = new HashSet<>(
+        Arrays.asList("previoustrack", "play", "pause", "nexttrack", "stop")
+    );
 
     private int playbackState = PlaybackStateCompat.STATE_NONE;
     private String title = "";
@@ -70,6 +72,7 @@ public class MediaSessionService extends Service {
     private final IBinder binder = new LocalBinder();
 
     public final class LocalBinder extends Binder {
+
         MediaSessionService getService() {
             return MediaSessionService.this;
         }
@@ -98,8 +101,7 @@ public class MediaSessionService extends Service {
             .setState(PlaybackStateCompat.STATE_PAUSED, position, playbackSpeed);
         mediaSession.setPlaybackState(playbackStateBuilder.build());
 
-        mediaMetadataBuilder = new MediaMetadataCompat.Builder()
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+        mediaMetadataBuilder = new MediaMetadataCompat.Builder().putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
         mediaSession.setMetadata(mediaMetadataBuilder.build());
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -109,32 +111,26 @@ public class MediaSessionService extends Service {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel =
-                new NotificationChannel(CHANNEL_ID, "Playback", NotificationManager.IMPORTANCE_LOW);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Playback", NotificationManager.IMPORTANCE_LOW);
             notificationManager.createNotificationChannel(channel);
         }
 
         notificationStyle = new MediaStyle().setMediaSession(mediaSession.getSessionToken());
-        notificationBuilder =
-            new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setStyle(notificationStyle)
-                .setSmallIcon(R.drawable.ic_baseline_volume_up_24)
-                .setContentIntent(
-                    PendingIntent.getActivity(
-                        getApplicationContext(),
-                        0,
-                        intent,
-                        PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
-                    )
+        notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+            .setStyle(notificationStyle)
+            .setSmallIcon(R.drawable.ic_baseline_volume_up_24)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    getApplicationContext(),
+                    0,
+                    intent,
+                    PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
                 )
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+            )
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                notificationBuilder.build(),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            );
+            startForeground(NOTIFICATION_ID, notificationBuilder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
         } else {
             startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
@@ -204,14 +200,8 @@ public class MediaSessionService extends Service {
 
         playbackStateActions.put("previoustrack", PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
         playbackStateActions.put("seekbackward", PlaybackStateCompat.ACTION_REWIND);
-        playbackStateActions.put(
-            "play",
-            PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY
-        );
-        playbackStateActions.put(
-            "pause",
-            PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PAUSE
-        );
+        playbackStateActions.put("play", PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY);
+        playbackStateActions.put("pause", PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PAUSE);
         playbackStateActions.put("seekforward", PlaybackStateCompat.ACTION_FAST_FORWARD);
         playbackStateActions.put("nexttrack", PlaybackStateCompat.ACTION_SKIP_TO_NEXT);
         playbackStateActions.put("seekto", PlaybackStateCompat.ACTION_SEEK_TO);
@@ -313,18 +303,13 @@ public class MediaSessionService extends Service {
                     }
 
                     if (playbackStateActions.containsKey(actionName)) {
-                        activePlaybackStateActions =
-                            activePlaybackStateActions | playbackStateActions.get(actionName);
+                        activePlaybackStateActions = activePlaybackStateActions | playbackStateActions.get(actionName);
                     }
 
                     if (notificationActions.containsKey(actionName) && notificationBuilder != null) {
                         notificationBuilder.addAction(notificationActions.get(actionName));
-                        if (
-                            possibleCompactViewActions.contains(actionName) &&
-                            compactNotificationActionIndicesIndex < 3
-                        ) {
-                            activeCompactViewActionIndices[compactNotificationActionIndicesIndex] =
-                                notificationActionIndex;
+                        if (possibleCompactViewActions.contains(actionName) && compactNotificationActionIndicesIndex < 3) {
+                            activeCompactViewActionIndices[compactNotificationActionIndicesIndex] = notificationActionIndex;
                             compactNotificationActionIndicesIndex++;
                         }
                         notificationActionIndex++;
@@ -338,11 +323,7 @@ public class MediaSessionService extends Service {
             if (notificationStyle != null) {
                 if (compactNotificationActionIndicesIndex > 0) {
                     notificationStyle.setShowActionsInCompactView(
-                        Arrays.copyOfRange(
-                            activeCompactViewActionIndices,
-                            0,
-                            compactNotificationActionIndicesIndex
-                        )
+                        Arrays.copyOfRange(activeCompactViewActionIndices, 0, compactNotificationActionIndicesIndex)
                     );
                 } else {
                     notificationStyle.setShowActionsInCompactView();
@@ -372,10 +353,7 @@ public class MediaSessionService extends Service {
         }
 
         if (notificationUpdate && notificationBuilder != null && notificationManager != null) {
-            notificationBuilder
-                .setContentTitle(title)
-                .setContentText(artist + " - " + album)
-                .setLargeIcon(artwork);
+            notificationBuilder.setContentTitle(title).setContentText(artist + " - " + album).setLargeIcon(artwork);
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
             notificationUpdate = false;
         }

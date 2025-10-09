@@ -32,10 +32,7 @@ export class MediaSessionWeb extends WebPlugin implements MediaSessionPlugin {
     mediaSession.playbackState = options.playbackState;
   }
 
-  async setActionHandler(
-    options: ActionHandlerOptions,
-    handler: ActionHandler | null,
-  ): Promise<void> {
+  async setActionHandler(options: ActionHandlerOptions, handler: ActionHandler | null): Promise<void> {
     const mediaSession = (navigator as any).mediaSession;
     if (!mediaSession) {
       throw this.unavailable('Media Session API not available in this browser.');

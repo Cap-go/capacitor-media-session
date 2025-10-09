@@ -47,28 +47,27 @@ public class MediaSessionPlugin extends Plugin {
 
     private MediaSessionService service;
 
-    private final ServiceConnection serviceConnection =
-        new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder binder) {
-                MediaSessionService.LocalBinder localBinder = (MediaSessionService.LocalBinder) binder;
-                service = localBinder.getService();
-                if (getActivity() == null) {
-                    return;
-                }
-                Intent launchIntent = new Intent(getActivity(), getActivity().getClass());
-                service.connectAndInitialize(MediaSessionPlugin.this, launchIntent);
-                updateServiceMetadata();
-                updateServicePlaybackState();
-                updateServicePositionState();
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder binder) {
+            MediaSessionService.LocalBinder localBinder = (MediaSessionService.LocalBinder) binder;
+            service = localBinder.getService();
+            if (getActivity() == null) {
+                return;
             }
+            Intent launchIntent = new Intent(getActivity(), getActivity().getClass());
+            service.connectAndInitialize(MediaSessionPlugin.this, launchIntent);
+            updateServiceMetadata();
+            updateServicePlaybackState();
+            updateServicePositionState();
+        }
 
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                Log.d(TAG, "Disconnected from MediaSessionService");
-                service = null;
-            }
-        };
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            Log.d(TAG, "Disconnected from MediaSessionService");
+            service = null;
+        }
+    };
 
     @Override
     public void load() {

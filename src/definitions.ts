@@ -56,10 +56,7 @@ export interface MediaSessionPlugin {
   /**
    * Registers a handler for a media session action.
    */
-  setActionHandler(
-    options: ActionHandlerOptions,
-    handler: ActionHandler | null,
-  ): Promise<void>;
+  setActionHandler(options: ActionHandlerOptions, handler: ActionHandler | null): Promise<void>;
   /**
    * Updates position state for the active media session.
    */
