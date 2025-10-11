@@ -1,4 +1,4 @@
-package com.example.plugin;
+package app.capgo.media.session;
 
 import com.getcapacitor.BridgeActivity;
 
