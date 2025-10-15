@@ -84,8 +84,8 @@ public class MediaSessionPlugin extends Plugin {
     }
 
     @Override
-    protected void handleAppStop() {
-        super.handleAppStop();
+    protected void handleOnStop() {
+        super.handleOnStop();
 
         if (startServiceOnlyDuringPlayback && service != null && !isPlaybackActive()) {
             stopMediaService();
