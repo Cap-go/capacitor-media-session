@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.0.6](https://github.com/Cap-go/capacitor-media-session/compare/7.0.5...7.0.6) (2025-10-15)
+
+
+### Bug Fixes
+
+* lock and lint ([b1bbcb4](https://github.com/Cap-go/capacitor-media-session/commit/b1bbcb44545d872555438974e7dc25fe0aa69bc7))
+
 ## [7.0.5](https://github.com/Cap-go/capacitor-media-session/compare/7.0.4...7.0.5) (2025-10-15)
 
 
