@@ -30,6 +30,8 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "MediaSession")
 public class MediaSessionPlugin extends Plugin {
 
+    private final String PLUGIN_VERSION = "";
+
     private static final String TAG = "CapgoMediaSession";
 
     private boolean startServiceOnlyDuringPlayback = true;
@@ -272,6 +274,17 @@ public class MediaSessionPlugin extends Plugin {
             handler.resolve(data);
         } else {
             Log.d(TAG, "No handler for action " + action);
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.PLUGIN_VERSION);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

@@ -47,4 +47,8 @@ export class MediaSessionWeb extends WebPlugin implements MediaSessionPlugin {
     }
     mediaSession.setPositionState(options);
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }
