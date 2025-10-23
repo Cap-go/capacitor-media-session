@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.1.0](https://github.com/Cap-go/capacitor-media-session/compare/7.0.8...7.1.0) (2025-10-23)
+
+
+### Features
+
+* add getPluginVersion method to MediaSessionPlugin and update definitions ([12e09af](https://github.com/Cap-go/capacitor-media-session/commit/12e09af40fe082fcccd2d0b4df9d6cfa40485357))
+
+
+### Bug Fixes
+
+* remove content field from Discord release notification ([92859ae](https://github.com/Cap-go/capacitor-media-session/commit/92859aedd9a8f70dc2b33e0531e08cb480ec4550))
+
 ## [7.0.8](https://github.com/Cap-go/capacitor-media-session/compare/7.0.7...7.0.8) (2025-10-16)
 
 ## [7.0.7](https://github.com/Cap-go/capacitor-media-session/compare/7.0.6...7.0.7) (2025-10-15)
