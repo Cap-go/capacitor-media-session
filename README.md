@@ -22,6 +22,7 @@ npx cap sync
 * [`setPlaybackState(...)`](#setplaybackstate)
 * [`setActionHandler(...)`](#setactionhandler)
 * [`setPositionState(...)`](#setpositionstate)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -87,6 +88,19 @@ Updates position state for the active media session.
 | Param         | Type                                                                  |
 | ------------- | --------------------------------------------------------------------- |
 | **`options`** | <code><a href="#positionstateoptions">PositionStateOptions</a></code> |
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+Get the native Capacitor plugin version
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 
