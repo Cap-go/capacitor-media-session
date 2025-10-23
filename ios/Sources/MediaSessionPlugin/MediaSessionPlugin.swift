@@ -3,7 +3,7 @@ import Foundation
 
 @objc(MediaSessionPlugin)
 public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
-    private let PLUGIN_VERSION: String = ""
+    private let PLUGIN_VERSION: String = "7.1.0"
     public let identifier = "MediaSessionPlugin"
     public let jsName = "MediaSession"
     public let pluginMethods: [CAPPluginMethod] = [
