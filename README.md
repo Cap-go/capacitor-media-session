@@ -7,6 +7,10 @@
 </div>
 Expose media session controls for Capacitor apps
 
+## Documentation
+
+The most complete doc is available here: https://capgo.app/docs/plugins/media-session/
+
 ## Install
 
 ```bash
