@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.1.4](https://github.com/Cap-go/capacitor-media-session/compare/7.1.3...7.1.4) (2025-10-27)
+
+
+### Bug Fixes
+
+* renovate capacitor dep ([97c7140](https://github.com/Cap-go/capacitor-media-session/commit/97c714027e249a8a691467cf6f9d835332617e0c))
+
 ## [7.1.3](https://github.com/Cap-go/capacitor-media-session/compare/7.1.2...7.1.3) (2025-10-26)
 
 
