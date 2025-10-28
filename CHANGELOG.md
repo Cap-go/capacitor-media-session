@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.2.0](https://github.com/Cap-go/capacitor-media-session/compare/7.1.4...7.2.0) (2025-10-28)
+
+
+### Features
+
+* implement media session controls and metadata handling ([2374047](https://github.com/Cap-go/capacitor-media-session/commit/23740473a7c123e82671d5f088f2dd4c6f9267cb))
+
+
+### Bug Fixes
+
+* CI/CD config ([f8fc409](https://github.com/Cap-go/capacitor-media-session/commit/f8fc409d6075be9afefc5cc189606926fcf8ce1d))
+* update github action ([0c9ca1c](https://github.com/Cap-go/capacitor-media-session/commit/0c9ca1c15c462e85f390f1fcd2ed3a226fc6aa47))
+
 ## [7.1.4](https://github.com/Cap-go/capacitor-media-session/compare/7.1.3...7.1.4) (2025-10-27)
 
 
