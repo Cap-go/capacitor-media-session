@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.2.1](https://github.com/Cap-go/capacitor-media-session/compare/7.2.0...7.2.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* model github action ([36d2304](https://github.com/Cap-go/capacitor-media-session/commit/36d23049af70a42a8c1356dd68e30b3387d54bba))
+
 ## [7.2.0](https://github.com/Cap-go/capacitor-media-session/compare/7.1.4...7.2.0) (2025-10-28)
 
 

@@ -4,7 +4,7 @@ import MediaPlayer
 
 @objc(MediaSessionPlugin)
 public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
-    private let PLUGIN_VERSION: String = "7.2.0"
+    private let PLUGIN_VERSION: String = "7.2.1"
     public let identifier = "MediaSessionPlugin"
     public let jsName = "MediaSession"
     public let pluginMethods: [CAPPluginMethod] = [
