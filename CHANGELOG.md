@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.2.2](https://github.com/Cap-go/capacitor-media-session/compare/7.2.1...7.2.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* change registeredCommands type from Set<MPRemoteCommandEvent.Type> to Set<String> ([6045e9f](https://github.com/Cap-go/capacitor-media-session/commit/6045e9fa5f7accb6c0728dcc3a406f03c1045310))
+* update artwork handling to use new array methods for better safety ([ab1cc96](https://github.com/Cap-go/capacitor-media-session/commit/ab1cc96279f81403874a7e80702a21748fb83630))
+
 ## [7.2.1](https://github.com/Cap-go/capacitor-media-session/compare/7.2.0...7.2.1) (2025-10-29)
 
 
