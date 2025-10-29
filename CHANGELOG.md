@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.2.3](https://github.com/Cap-go/capacitor-media-session/compare/7.2.2...7.2.3) (2025-10-29)
+
+
+### Bug Fixes
+
+* update artwork handling to use Swift array syntax for improved clarity ([b964e55](https://github.com/Cap-go/capacitor-media-session/commit/b964e55b1d5dac052f8abe4007740ca27d73d40a))
+
 ## [7.2.2](https://github.com/Cap-go/capacitor-media-session/compare/7.2.1...7.2.2) (2025-10-29)
 
 
