@@ -35,9 +35,9 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
 
             // Handle artwork
             if let artworkArray = call.getArray("artwork"),
-               artworkArray.length() > 0,
-               let firstArtwork = artworkArray.getDictionary(0),
-               let src = firstArtwork.getString("src") {
+               artworkArray.count > 0,
+               let firstArtwork = artworkArray[0] as? [String: Any],
+               let src = firstArtwork["src"] as? String {
                 self.loadArtwork(from: src) { image in
                     if let image = image {
                         info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
