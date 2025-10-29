@@ -34,9 +34,10 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
             }
 
             // Handle artwork
-            if let artworkArray = call.getArray("artwork")?.capacitor.toJSONArray() as? [[String: Any]],
-               let firstArtwork = artworkArray.first,
-               let src = firstArtwork["src"] as? String {
+            if let artworkArray = call.getArray("artwork"),
+               artworkArray.length() > 0,
+               let firstArtwork = artworkArray.getDictionary(0),
+               let src = firstArtwork.getString("src") {
                 self.loadArtwork(from: src) { image in
                     if let image = image {
                         info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
