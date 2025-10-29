@@ -16,7 +16,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     private var nowPlayingInfo: [String: Any] = [:]
-    private var registeredCommands: Set<MPRemoteCommandEvent.Type> = []
+    private var registeredCommands: Set<String> = []
 
     @objc func setMetadata(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
