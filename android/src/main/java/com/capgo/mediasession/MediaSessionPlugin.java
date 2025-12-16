@@ -30,7 +30,7 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "MediaSession")
 public class MediaSessionPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.1";
+    private final String pluginVersion = "8.0.2";
 
     private static final String TAG = "CapgoMediaSession";
 
