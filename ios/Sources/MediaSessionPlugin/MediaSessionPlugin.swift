@@ -20,7 +20,6 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func setMetadata(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            let nowPlayingInfo = MPNowPlayingInfoCenter.default()
             var info: [String: Any] = [:]
 
             if let title = call.getString("title") {
@@ -42,13 +41,13 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                     if let image = image {
                         info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
                     }
-                    nowPlayingInfo.nowPlayingInfo = info
+                    self.updateNowPlayingInfo(info)
                     call.resolve()
                 }
                 return
             }
 
-            nowPlayingInfo.nowPlayingInfo = info
+            self.updateNowPlayingInfo(info)
             call.resolve()
         }
     }
@@ -60,8 +59,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         DispatchQueue.main.async {
-            let nowPlayingInfo = MPNowPlayingInfoCenter.default()
-            var info = nowPlayingInfo.nowPlayingInfo ?? [:]
+            var info = self.nowPlayingInfo
 
             switch stateString {
             case "playing":
@@ -72,7 +70,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
             }
 
-            nowPlayingInfo.nowPlayingInfo = info
+            self.updateNowPlayingInfo(info)
             call.resolve()
         }
     }
@@ -140,8 +138,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func setPositionState(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            let nowPlayingInfo = MPNowPlayingInfoCenter.default()
-            var info = nowPlayingInfo.nowPlayingInfo ?? [:]
+            var info = self.nowPlayingInfo
 
             if let duration = call.getDouble("duration") {
                 info[MPMediaItemPropertyPlaybackDuration] = duration
@@ -153,7 +150,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 info[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate
             }
 
-            nowPlayingInfo.nowPlayingInfo = info
+            self.updateNowPlayingInfo(info)
             call.resolve()
         }
     }
@@ -188,5 +185,10 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 completion(image)
             }
         }.resume()
+    }
+
+    private func updateNowPlayingInfo(_ info: [String: Any]) {
+        nowPlayingInfo.merge(info) { _, new in new }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
 }
