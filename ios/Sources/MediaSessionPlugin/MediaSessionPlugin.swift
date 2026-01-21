@@ -18,6 +18,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     private var nowPlayingInfo: [String: Any] = [:]
     private var registeredCommands: Set<String> = []
 
+    /// Sets the Now Playing metadata (title, artist, album, artwork).
     @objc func setMetadata(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             var info: [String: Any] = [:]
@@ -52,6 +53,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// Updates the playback state (playing/paused/none).
     @objc func setPlaybackState(_ call: CAPPluginCall) {
         guard let stateString = call.getString("playbackState") else {
             call.reject("playbackState is required")
@@ -75,6 +77,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// Registers a native handler for a media session action.
     @objc func setActionHandler(_ call: CAPPluginCall) {
         guard let action = call.getString("action") else {
             call.reject("action is required")
@@ -136,6 +139,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// Updates playback position state (duration, position, playbackRate).
     @objc func setPositionState(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             var info = self.nowPlayingInfo
@@ -155,6 +159,7 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// Returns the native plugin version.
     @objc func getPluginVersion(_ call: CAPPluginCall) {
         call.resolve(["version": self.pluginVersion])
     }
