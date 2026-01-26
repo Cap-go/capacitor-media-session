@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "CapgoMediaSession",
+    name: "CapgoCapacitorMediaSession",
     platforms: [.iOS(.v15)],
     products: [
         .library(
-            name: "CapgoMediaSession",
+            name: "CapgoCapacitorMediaSession",
             targets: ["MediaSessionPlugin"])
     ],
     dependencies: [
