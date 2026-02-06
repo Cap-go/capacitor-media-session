@@ -16,7 +16,21 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     private var nowPlayingInfo: [String: Any] = [:]
-    private var registeredCommands: Set<String> = []
+    // MPRemoteCommandCenter is shared across the whole app. Store the opaque targets returned
+    // by `addTarget(handler:)` so we can re-register idempotently without removing other targets.
+    private var commandTargetTokens: [String: Any] = [:]
+
+    private func registerCommand(
+        action: String,
+        command: MPRemoteCommand,
+        handler: @escaping (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus
+    ) {
+        if let token = commandTargetTokens[action] {
+            command.removeTarget(token)
+        }
+        command.isEnabled = true
+        commandTargetTokens[action] = command.addTarget(handler: handler)
+    }
 
     /// Sets the Now Playing metadata (title, artist, album, artwork).
     @objc func setMetadata(_ call: CAPPluginCall) {
@@ -92,50 +106,42 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
 
             switch action {
             case "play":
-                commandCenter.playCommand.isEnabled = true
-                commandCenter.playCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.playCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "play"])
                     return .success
                 }
             case "pause":
-                commandCenter.pauseCommand.isEnabled = true
-                commandCenter.pauseCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.pauseCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "pause"])
                     return .success
                 }
             case "nexttrack":
-                commandCenter.nextTrackCommand.isEnabled = true
-                commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.nextTrackCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "nexttrack"])
                     return .success
                 }
             case "previoustrack":
-                commandCenter.previousTrackCommand.isEnabled = true
-                commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.previousTrackCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "previoustrack"])
                     return .success
                 }
             case "seekforward":
-                commandCenter.skipForwardCommand.isEnabled = true
-                commandCenter.skipForwardCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.skipForwardCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "seekforward"])
                     return .success
                 }
             case "seekbackward":
-                commandCenter.skipBackwardCommand.isEnabled = true
-                commandCenter.skipBackwardCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.skipBackwardCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "seekbackward"])
                     return .success
                 }
             case "stop":
-                commandCenter.stopCommand.isEnabled = true
-                commandCenter.stopCommand.addTarget { [weak self] _ in
+                self.registerCommand(action: action, command: commandCenter.stopCommand) { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "stop"])
                     return .success
                 }
             case "seekto":
-                commandCenter.changePlaybackPositionCommand.isEnabled = true
-                commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
+                self.registerCommand(action: action, command: commandCenter.changePlaybackPositionCommand) { [weak self] event in
                     guard let positionEvent = event as? MPChangePlaybackPositionCommandEvent else {
                         return .commandFailed
                     }
@@ -163,9 +169,13 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 info[MPMediaItemPropertyPlaybackDuration] = max(0, duration)
             }
             if let position = call.getDouble("position") {
-                let duration = (info[MPMediaItemPropertyPlaybackDuration] as? Double) ?? call.getDouble("duration") ?? 0
-                let clampedPosition = max(0, min(position, max(0, duration)))
-                info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = clampedPosition
+                let sanitizedPosition = max(0, position)
+                if let duration = info[MPMediaItemPropertyPlaybackDuration] as? Double, duration > 0 {
+                    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = min(sanitizedPosition, duration)
+                } else {
+                    // If duration is unknown, don't clamp the position to 0.
+                    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = sanitizedPosition
+                }
             }
             if let playbackRate = call.getDouble("playbackRate") {
                 info[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate
