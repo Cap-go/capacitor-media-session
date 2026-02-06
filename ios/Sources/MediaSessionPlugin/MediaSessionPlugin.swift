@@ -72,6 +72,9 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
             }
 
+            // Keep a default rate so lockscreen scrub remains interactive even while paused.
+            info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
+
             self.updateNowPlayingInfo(info)
             call.resolve()
         }
@@ -130,6 +133,18 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                     self?.notifyListeners("actionHandler", data: ["action": "stop"])
                     return .success
                 }
+            case "seekto":
+                commandCenter.changePlaybackPositionCommand.isEnabled = true
+                commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
+                    guard let positionEvent = event as? MPChangePlaybackPositionCommandEvent else {
+                        return .commandFailed
+                    }
+                    self?.notifyListeners("actionHandler", data: [
+                        "action": "seekto",
+                        "seekTime": positionEvent.positionTime
+                    ])
+                    return .success
+                }
             default:
                 call.reject("Unsupported action: \(action)")
                 return
@@ -145,14 +160,17 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
             var info = self.nowPlayingInfo
 
             if let duration = call.getDouble("duration") {
-                info[MPMediaItemPropertyPlaybackDuration] = duration
+                info[MPMediaItemPropertyPlaybackDuration] = max(0, duration)
             }
             if let position = call.getDouble("position") {
-                info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position
+                let duration = (info[MPMediaItemPropertyPlaybackDuration] as? Double) ?? call.getDouble("duration") ?? 0
+                let clampedPosition = max(0, min(position, max(0, duration)))
+                info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = clampedPosition
             }
             if let playbackRate = call.getDouble("playbackRate") {
                 info[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate
             }
+            info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
 
             self.updateNowPlayingInfo(info)
             call.resolve()
