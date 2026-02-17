@@ -17,6 +17,13 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private var nowPlayingInfo: [String: Any] = [:]
     private var registeredCommands: Set<String> = []
+    private var commandTargets: [String: Any] = [:]
+
+    deinit {
+        DispatchQueue.main.async { [weak self] in
+            self?.clearRemoteCommandTargets()
+        }
+    }
 
     /// Sets the Now Playing metadata (title, artist, album, artwork).
     @objc func setMetadata(_ call: CAPPluginCall) {
@@ -66,10 +73,28 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
             switch stateString {
             case "playing":
                 info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+                self.updateRemoteCommandPlaybackControls(canPlay: false, canPause: true)
+                if #available(iOS 13.0, *) {
+                    MPNowPlayingInfoCenter.default().playbackState = .playing
+                }
             case "paused":
                 info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+                self.updateRemoteCommandPlaybackControls(canPlay: true, canPause: false)
+                if #available(iOS 13.0, *) {
+                    MPNowPlayingInfoCenter.default().playbackState = .paused
+                }
+            case "none":
+                info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+                self.updateRemoteCommandPlaybackControls(canPlay: false, canPause: false)
+                if #available(iOS 13.0, *) {
+                    MPNowPlayingInfoCenter.default().playbackState = .stopped
+                }
             default:
                 info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+                self.updateRemoteCommandPlaybackControls(canPlay: true, canPause: false)
+                if #available(iOS 13.0, *) {
+                    MPNowPlayingInfoCenter.default().playbackState = .stopped
+                }
             }
 
             // Keep a default rate so lockscreen scrub remains interactive even while paused.
@@ -88,68 +113,85 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         DispatchQueue.main.async {
+            if self.registeredCommands.contains(action) {
+                call.resolve()
+                return
+            }
+
             let commandCenter = MPRemoteCommandCenter.shared()
 
             switch action {
             case "play":
                 commandCenter.playCommand.isEnabled = true
-                commandCenter.playCommand.addTarget { [weak self] _ in
+                let target = commandCenter.playCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "play"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "pause":
                 commandCenter.pauseCommand.isEnabled = true
-                commandCenter.pauseCommand.addTarget { [weak self] _ in
+                let target = commandCenter.pauseCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "pause"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "nexttrack":
                 commandCenter.nextTrackCommand.isEnabled = true
-                commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+                let target = commandCenter.nextTrackCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "nexttrack"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "previoustrack":
                 commandCenter.previousTrackCommand.isEnabled = true
-                commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+                let target = commandCenter.previousTrackCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "previoustrack"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "seekforward":
                 commandCenter.skipForwardCommand.isEnabled = true
-                commandCenter.skipForwardCommand.addTarget { [weak self] _ in
+                let target = commandCenter.skipForwardCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "seekforward"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "seekbackward":
                 commandCenter.skipBackwardCommand.isEnabled = true
-                commandCenter.skipBackwardCommand.addTarget { [weak self] _ in
+                let target = commandCenter.skipBackwardCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "seekbackward"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "stop":
                 commandCenter.stopCommand.isEnabled = true
-                commandCenter.stopCommand.addTarget { [weak self] _ in
+                let target = commandCenter.stopCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "stop"])
                     return .success
                 }
+                self.commandTargets[action] = target
             case "seekto":
                 commandCenter.changePlaybackPositionCommand.isEnabled = true
-                commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
+                let target = commandCenter.changePlaybackPositionCommand.addTarget {
+                    [weak self] event in
                     guard let positionEvent = event as? MPChangePlaybackPositionCommandEvent else {
                         return .commandFailed
                     }
-                    self?.notifyListeners("actionHandler", data: [
-                        "action": "seekto",
-                        "seekTime": positionEvent.positionTime
-                    ])
+                    self?.notifyListeners(
+                        "actionHandler",
+                        data: [
+                            "action": "seekto",
+                            "seekTime": positionEvent.positionTime,
+                        ])
                     return .success
                 }
+                self.commandTargets[action] = target
             default:
                 call.reject("Unsupported action: \(action)")
                 return
             }
 
+            self.registeredCommands.insert(action)
             call.resolve()
         }
     }
@@ -163,12 +205,22 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 info[MPMediaItemPropertyPlaybackDuration] = max(0, duration)
             }
             if let position = call.getDouble("position") {
-                let duration = (info[MPMediaItemPropertyPlaybackDuration] as? Double) ?? call.getDouble("duration") ?? 0
+                let duration =
+                    (info[MPMediaItemPropertyPlaybackDuration] as? Double) ?? call.getDouble(
+                        "duration") ?? 0
                 let clampedPosition = max(0, min(position, max(0, duration)))
                 info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = clampedPosition
             }
             if let playbackRate = call.getDouble("playbackRate") {
                 info[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate
+                self.updateRemoteCommandPlaybackControls(
+                    canPlay: playbackRate <= 0,
+                    canPause: playbackRate > 0
+                )
+                if #available(iOS 13.0, *) {
+                    MPNowPlayingInfoCenter.default().playbackState =
+                        playbackRate <= 0 ? .paused : .playing
+                }
             }
             info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
 
@@ -214,4 +266,50 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         nowPlayingInfo.merge(info) { _, new in new }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
+
+    private func updateRemoteCommandPlaybackControls(canPlay: Bool, canPause: Bool) {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        let playRegistered = registeredCommands.contains("play")
+        let pauseRegistered = registeredCommands.contains("pause")
+
+        commandCenter.playCommand.isEnabled = playRegistered ? canPlay : false
+        commandCenter.pauseCommand.isEnabled = pauseRegistered ? canPause : false
+    }
+
+    private func clearRemoteCommandTargets() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+
+        for (action, target) in commandTargets {
+            command(for: action, in: commandCenter)?.removeTarget(target)
+        }
+
+        commandTargets.removeAll()
+        registeredCommands.removeAll()
+    }
+
+    private func command(for action: String, in commandCenter: MPRemoteCommandCenter)
+        -> MPRemoteCommand?
+    {
+        switch action {
+        case "play":
+            return commandCenter.playCommand
+        case "pause":
+            return commandCenter.pauseCommand
+        case "nexttrack":
+            return commandCenter.nextTrackCommand
+        case "previoustrack":
+            return commandCenter.previousTrackCommand
+        case "seekforward":
+            return commandCenter.skipForwardCommand
+        case "seekbackward":
+            return commandCenter.skipBackwardCommand
+        case "stop":
+            return commandCenter.stopCommand
+        case "seekto":
+            return commandCenter.changePlaybackPositionCommand
+        default:
+            return nil
+        }
+    }
+
 }
