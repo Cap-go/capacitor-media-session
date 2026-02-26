@@ -20,8 +20,12 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     private var commandTargets: [String: Any] = [:]
 
     deinit {
-        DispatchQueue.main.async { [weak self] in
-            self?.clearRemoteCommandTargets()
+        if Thread.isMainThread {
+            clearRemoteCommandTargets()
+        } else {
+            DispatchQueue.main.sync {
+                self.clearRemoteCommandTargets()
+            }
         }
     }
 
@@ -122,14 +126,12 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
 
             switch action {
             case "play":
-                commandCenter.playCommand.isEnabled = true
                 let target = commandCenter.playCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "play"])
                     return .success
                 }
                 self.commandTargets[action] = target
             case "pause":
-                commandCenter.pauseCommand.isEnabled = true
                 let target = commandCenter.pauseCommand.addTarget { [weak self] _ in
                     self?.notifyListeners("actionHandler", data: ["action": "pause"])
                     return .success
@@ -192,6 +194,11 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
             }
 
             self.registeredCommands.insert(action)
+            let currentRate = (self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] as? Double) ?? 0
+            self.updateRemoteCommandPlaybackControls(
+                canPlay: currentRate <= 0,
+                canPause: currentRate > 0
+            )
             call.resolve()
         }
     }
@@ -280,7 +287,10 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         let commandCenter = MPRemoteCommandCenter.shared()
 
         for (action, target) in commandTargets {
-            command(for: action, in: commandCenter)?.removeTarget(target)
+        if let remoteCommand = command(for: action, in: commandCenter) {
+            remoteCommand.removeTarget(target)
+            remoteCommand.isEnabled = false
+        }
         }
 
         commandTargets.removeAll()
