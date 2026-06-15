@@ -151,6 +151,7 @@ const bootstrap = async () => {
     await applyPositionState();
   } catch (error) {
     handleError(error);
+    throw error;
   }
 };
 
