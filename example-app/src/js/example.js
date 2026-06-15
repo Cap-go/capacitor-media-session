@@ -154,10 +154,13 @@ const bootstrap = async () => {
   }
 };
 
-bootstrap().catch(handleError);
-
-if (Capacitor.isNativePlatform()) {
-  CapacitorUpdater.notifyAppReady().catch((error) => {
-    console.error('Capgo notifyAppReady failed', error);
-  });
-}
+bootstrap()
+  .then(() => {
+    if (Capacitor.isNativePlatform()) {
+      return CapacitorUpdater.notifyAppReady().catch((error) => {
+        console.error('Capgo notifyAppReady failed', error);
+      });
+    }
+    return undefined;
+  })
+  .catch(handleError);
