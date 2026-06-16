@@ -1,3 +1,5 @@
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+import { Capacitor } from '@capacitor/core';
 import { MediaSession } from '@capgo/capacitor-media-session';
 
 const logOutput = document.getElementById('logOutput');
@@ -149,7 +151,17 @@ const bootstrap = async () => {
     await applyPositionState();
   } catch (error) {
     handleError(error);
+    throw error;
   }
 };
 
-bootstrap().catch(handleError);
+bootstrap()
+  .then(() => {
+    if (Capacitor.isNativePlatform()) {
+      return CapacitorUpdater.notifyAppReady().catch((error) => {
+        console.error('Capgo notifyAppReady failed', error);
+      });
+    }
+    return undefined;
+  })
+  .catch(handleError);
