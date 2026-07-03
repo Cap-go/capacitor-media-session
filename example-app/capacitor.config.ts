@@ -4,7 +4,7 @@ import pkg from './package.json';
 
 const config: CapacitorConfig = {
   appId: 'app.capgo.media.session',
-  appName: 'Media Session Example',
+  appName: '@capgo/capacitor-media-session',
   webDir: 'dist',
   plugins: {
     SplashScreen: {
