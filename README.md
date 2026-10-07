@@ -1,11 +1,27 @@
 # @capgo/capacitor-media-session
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-media-session" alt="Capgo - Instant updates for Capacitor" /></a>
+
+Show now-playing info and media controls on the lock screen, notification shade and control center for audio or video in your Capacitor app.
+
+<a href="https://capgo.app/?ref=plugin_media_session"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-media-session" alt="Capgo - Instant updates for Capacitor" /></a>
 
 <div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin_media_session"> ➡️ Get Instant updates for your App with Capgo</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin_media_session"> Missing a feature? We’ll build the plugin for you 💪</a></h2>
+  <p><b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without waiting for app store review.</p>
+  <h2><a href="https://capgo.app/register/?ref=plugin_media_session">➡️ Get started for free</a></h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+  <p><a href="https://capgo.app/consulting/?ref=plugin_media_session">Missing a feature? We'll build the plugin for you 💪</a></p>
 </div>
-Expose media session controls for Capacitor apps
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Cap-go/capacitor-media-session/main/assets/github-social-preview.png" alt="@capgo/capacitor-media-session for Capacitor apps" width="300" />
+</p>
+
+## Key features
+
+- **Metadata**: `setMetadata()` sets title, artist, album and artwork.
+- **Playback state**: `setPlaybackState()` shows playing, paused or none.
+- **Remote controls**: `setActionHandler()` handles play, pause, seek, next and previous.
+- **Progress**: `setPositionState()` updates duration, position and playback rate.
+- **Platforms**: iOS, Android and Web. iOS uses MediaPlayer now playing info, Android uses a media session service. Web uses the Media Session API.
 
 ## Documentation
 
