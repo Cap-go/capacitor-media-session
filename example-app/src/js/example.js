@@ -1,8 +1,13 @@
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
 import { MediaSession } from '@capgo/capacitor-media-session';
+import '../style.css';
 
 const logOutput = document.getElementById('logOutput');
+const artworkPreview = document.getElementById('artworkPreview');
+const playbackStateBadge = document.getElementById('playbackStateBadge');
+const playbackStateSelect = document.getElementById('playbackStateSelect');
+const metadataArtworkInput = document.getElementById('metadataArtwork');
 const logs = [];
 const maxLogEntries = 50;
 
@@ -28,6 +33,21 @@ const handleError = (error) => {
   log(`Error: ${message}`, 'error');
 };
 
+const syncArtworkPreview = () => {
+  const artwork = metadataArtworkInput?.value?.trim();
+  if (artworkPreview && artwork) {
+    artworkPreview.src = artwork;
+  }
+};
+
+const syncPlaybackBadge = (playbackState) => {
+  if (!playbackStateBadge) {
+    return;
+  }
+  playbackStateBadge.textContent = playbackState;
+  playbackStateBadge.dataset.state = playbackState;
+};
+
 const applyMetadata = async () => {
   const title = document.getElementById('metadataTitle')?.value?.trim();
   const artist = document.getElementById('metadataArtist')?.value?.trim();
@@ -42,13 +62,14 @@ const applyMetadata = async () => {
     album,
     artwork: artworkEntries,
   });
+  syncArtworkPreview();
   log('Metadata updated.');
 };
 
 const applyPlaybackState = async () => {
-  const select = document.getElementById('playbackStateSelect');
-  const playbackState = select?.value ?? 'none';
+  const playbackState = playbackStateSelect?.value ?? 'none';
   await MediaSession.setPlaybackState({ playbackState });
+  syncPlaybackBadge(playbackState);
   log(`Playback state set to "${playbackState}".`);
 };
 
@@ -119,6 +140,18 @@ const setupEventListeners = () => {
   document.getElementById('resetHandlersBtn')?.addEventListener('click', () =>
     resetHandlers().catch(handleError),
   );
+  document.getElementById('clearLogBtn')?.addEventListener('click', () => {
+    logs.length = 0;
+    if (logOutput) {
+      logOutput.textContent = '';
+    }
+    log('Log cleared.');
+  });
+
+  metadataArtworkInput?.addEventListener('input', syncArtworkPreview);
+  playbackStateSelect?.addEventListener('change', () => {
+    syncPlaybackBadge(playbackStateSelect.value ?? 'none');
+  });
 
   const toggles = document.querySelectorAll('.action-toggle');
   toggles.forEach((toggle) => {
@@ -134,6 +167,8 @@ const setupEventListeners = () => {
 
 const bootstrap = async () => {
   setupEventListeners();
+  syncArtworkPreview();
+  syncPlaybackBadge(playbackStateSelect?.value ?? 'playing');
 
   // Register handlers for toggles that start checked.
   const toggles = document.querySelectorAll('.action-toggle:checked');
