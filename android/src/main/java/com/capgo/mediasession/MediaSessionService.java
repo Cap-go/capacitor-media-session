@@ -353,7 +353,10 @@ public class MediaSessionService extends Service {
         }
 
         if (notificationUpdate && notificationBuilder != null && notificationManager != null) {
-            notificationBuilder.setContentTitle(title).setContentText(artist + " - " + album).setLargeIcon(artwork);
+            notificationBuilder
+                .setContentTitle(title)
+                .setContentText(artist + " - " + album)
+                .setLargeIcon(artwork);
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
             notificationUpdate = false;
         }

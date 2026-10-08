@@ -7,14 +7,7 @@ export interface MediaImage {
 export type MediaSessionPlaybackState = 'none' | 'paused' | 'playing';
 
 export type MediaSessionAction =
-  | 'play'
-  | 'pause'
-  | 'seekbackward'
-  | 'seekforward'
-  | 'previoustrack'
-  | 'nexttrack'
-  | 'seekto'
-  | 'stop';
+  'play' | 'pause' | 'seekbackward' | 'seekforward' | 'previoustrack' | 'nexttrack' | 'seekto' | 'stop';
 
 export interface MetadataOptions {
   album?: string;
