@@ -1,95 +1,130 @@
 <!doctype html>
-<html lang="en" dir="ltr" class="hydrated">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
-<title>@capgo/capacitor-media-session</title>
-
-</head>
+    <title>@capgo/capacitor-media-session</title>
+  </head>
   <body>
-    <main>
-      <h1>Capgo Media Session Demo</h1>
-      <p>
-        Use the controls below to drive each API exposed by
-        <code>@capgo/capacitor-media-session</code>.
-      </p>
+    <div class="shell">
+      <header class="hero">
+        <div class="brand-row">
+          <img src="/capgo-icon.png" width="40" height="40" alt="Capgo" />
+          <p class="eyebrow">Capgo plugin example</p>
+        </div>
+        <h1>Media session demo</h1>
+        <p class="lead">
+          Drive lock screen and notification controls with metadata, playback state, action handlers, and position
+          updates. Events from subscribed actions appear in the log below.
+        </p>
+      </header>
 
-      <section>
-        <h2>Metadata</h2>
-        <div>
-          <label for="metadataTitle">Title</label>
-          <input id="metadataTitle" type="text" value="Demo Track" />
+      <section class="panel" aria-labelledby="metadata-heading">
+        <h2 id="metadata-heading">Now playing</h2>
+        <div class="now-playing">
+          <div class="artwork-frame">
+            <img id="artworkPreview" src="https://placehold.co/512x512" alt="Album artwork preview" />
+          </div>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="metadataTitle">Title</label>
+              <input id="metadataTitle" type="text" value="Demo Track" autocomplete="off" />
+            </div>
+            <div class="field-grid two-col">
+              <div>
+                <label class="field-label" for="metadataArtist">Artist</label>
+                <input id="metadataArtist" type="text" value="Capgo" autocomplete="off" />
+              </div>
+              <div>
+                <label class="field-label" for="metadataAlbum">Album</label>
+                <input id="metadataAlbum" type="text" value="Sample Album" autocomplete="off" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="metadataArtwork">Artwork URL</label>
+              <input id="metadataArtwork" type="url" value="https://placehold.co/512x512" autocomplete="off" />
+            </div>
+          </div>
         </div>
-        <div>
-          <label for="metadataArtist">Artist</label>
-          <input id="metadataArtist" type="text" value="Capgo" />
+        <div class="actions">
+          <button id="applyMetadataBtn" type="button">Update metadata</button>
         </div>
-        <div>
-          <label for="metadataAlbum">Album</label>
-          <input id="metadataAlbum" type="text" value="Sample Album" />
-        </div>
-        <div>
-          <label for="metadataArtwork">Artwork URL</label>
-          <input id="metadataArtwork" type="url" value="https://placehold.co/512x512" />
-        </div>
-        <button id="applyMetadataBtn" type="button">Update Metadata</button>
       </section>
 
-      <section>
-        <h2>Playback State</h2>
-        <label for="playbackStateSelect">State</label>
+      <section class="panel" aria-labelledby="playback-heading">
+        <div class="status-row">
+          <h2 id="playback-heading">Playback state</h2>
+          <span id="playbackStateBadge" class="badge" data-state="playing">Playing</span>
+        </div>
+        <label class="field-label" for="playbackStateSelect">State</label>
         <select id="playbackStateSelect">
           <option value="none">None</option>
           <option value="paused">Paused</option>
           <option value="playing" selected>Playing</option>
         </select>
-        <button id="applyPlaybackStateBtn" type="button">Update Playback State</button>
+        <div class="actions">
+          <button id="applyPlaybackStateBtn" type="button">Update playback state</button>
+        </div>
       </section>
 
-      <section>
-        <h2>Action Handlers</h2>
-        <p>Select the actions you want to subscribe to. Events are logged below.</p>
-        <div>
-          <label><input type="checkbox" class="action-toggle" value="play" checked /> Play</label>
-          <label><input type="checkbox" class="action-toggle" value="pause" checked /> Pause</label>
-          <label><input type="checkbox" class="action-toggle" value="seekbackward" /> Seek Backward</label>
-          <label><input type="checkbox" class="action-toggle" value="seekforward" /> Seek Forward</label>
-          <label><input type="checkbox" class="action-toggle" value="previoustrack" /> Previous Track</label>
-          <label><input type="checkbox" class="action-toggle" value="nexttrack" /> Next Track</label>
-          <label><input type="checkbox" class="action-toggle" value="seekto" /> Seek To</label>
-          <label><input type="checkbox" class="action-toggle" value="stop" /> Stop</label>
+      <section class="panel" aria-labelledby="handlers-heading">
+        <h2 id="handlers-heading">Action handlers</h2>
+        <p class="hint">Toggle the remote actions you want to handle. Each change registers or clears a handler.</p>
+        <div class="chip-grid">
+          <label class="chip"><input type="checkbox" class="action-toggle" value="play" checked /> Play</label>
+          <label class="chip"><input type="checkbox" class="action-toggle" value="pause" checked /> Pause</label>
+          <label class="chip"
+            ><input type="checkbox" class="action-toggle" value="seekbackward" /> Seek backward</label
+          >
+          <label class="chip"
+            ><input type="checkbox" class="action-toggle" value="seekforward" /> Seek forward</label
+          >
+          <label class="chip"
+            ><input type="checkbox" class="action-toggle" value="previoustrack" /> Previous track</label
+          >
+          <label class="chip"><input type="checkbox" class="action-toggle" value="nexttrack" /> Next track</label>
+          <label class="chip"><input type="checkbox" class="action-toggle" value="seekto" /> Seek to</label>
+          <label class="chip"><input type="checkbox" class="action-toggle" value="stop" /> Stop</label>
         </div>
-        <button id="resetHandlersBtn" type="button">Clear Handlers</button>
+        <div class="actions">
+          <button id="resetHandlersBtn" type="button" class="ghost">Clear handlers</button>
+        </div>
       </section>
 
-      <section>
-        <h2>Position State</h2>
-        <div>
-          <label for="positionDuration">Duration (seconds)</label>
-          <input id="positionDuration" type="number" min="0" value="240" />
+      <section class="panel" aria-labelledby="position-heading">
+        <h2 id="position-heading">Position state</h2>
+        <div class="field-grid three-col">
+          <div>
+            <label class="field-label" for="positionDuration">Duration (s)</label>
+            <input id="positionDuration" type="number" min="0" value="240" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="field-label" for="positionPlaybackRate">Playback rate</label>
+            <input id="positionPlaybackRate" type="number" min="0" step="0.1" value="1" inputmode="decimal" />
+          </div>
+          <div>
+            <label class="field-label" for="positionCurrent">Position (s)</label>
+            <input id="positionCurrent" type="number" min="0" value="0" inputmode="numeric" />
+          </div>
         </div>
-        <div>
-          <label for="positionPlaybackRate">Playback Rate</label>
-          <input id="positionPlaybackRate" type="number" min="0" step="0.1" value="1" />
+        <div class="actions">
+          <button id="applyPositionStateBtn" type="button">Update position state</button>
         </div>
-        <div>
-          <label for="positionCurrent">Current Position (seconds)</label>
-          <input id="positionCurrent" type="number" min="0" value="0" />
-        </div>
-        <button id="applyPositionStateBtn" type="button">Update Position State</button>
       </section>
 
-      <section>
-        <h2>Event Log</h2>
-        <pre id="logOutput"></pre>
+      <section class="panel" aria-labelledby="log-heading">
+        <div class="log-header">
+          <h2 id="log-heading">Event log</h2>
+          <button id="clearLogBtn" type="button" class="ghost">Clear log</button>
+        </div>
+        <pre id="logOutput" aria-live="polite"></pre>
       </section>
-    </main>
+    </div>
 
     <script src="./js/example.js" type="module"></script>
   </body>
