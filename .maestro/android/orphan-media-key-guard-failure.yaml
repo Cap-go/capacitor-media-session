@@ -17,7 +17,7 @@ appId: app.capgo.media.session
     visible: '.*M:orphan-media-key:prepared.*'
     timeout: 60000
 - pressKey: Home
-- runScript: adb shell input keyevent 85
+- runScript: scripts/media-play-pause-key.js
 - extendedWaitUntil:
     timeout: 20000
     visible: '.*'

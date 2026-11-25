@@ -12,8 +12,34 @@ const logs = [];
 const maxLogEntries = 50;
 let mediaKeyActionCount = 0;
 
+const e2eStoragePrefix = 'capgo-media-session-e2e:';
+
 const e2eOutcomeLabel = document.getElementById('e2e-outcome-label');
 const e2eHarnessReady = document.getElementById('e2e-harness-ready');
+const e2eOrphanRunMarker = document.getElementById('e2e-orphan-run-marker');
+
+const writeE2eState = (key, value) => {
+  try {
+    localStorage.setItem(`${e2eStoragePrefix}${key}`, value);
+  } catch {
+    // Ignore storage errors in the harness.
+  }
+};
+
+const readE2eState = (key) => {
+  try {
+    return localStorage.getItem(`${e2eStoragePrefix}${key}`);
+  } catch {
+    return null;
+  }
+};
+
+const updateOrphanRunMarker = (runId) => {
+  if (e2eOrphanRunMarker) {
+    e2eOrphanRunMarker.textContent = runId ? `Orphan run: ${runId}` : 'Orphan run: none';
+    e2eOrphanRunMarker.dataset.runId = runId ?? '';
+  }
+};
 
 const setE2eOutcome = (label) => {
   if (e2eOutcomeLabel) {
@@ -147,6 +173,11 @@ const applyPositionState = async () => {
 const runE2ePrepareOrphanMediaKey = async () => {
   setE2eOutcome('running');
   mediaKeyActionCount = 0;
+  const runId = globalThis.crypto?.randomUUID?.() ?? `orphan-${Date.now()}`;
+  writeE2eState('orphan-run-id', runId);
+  writeE2eState('orphan-phase', 'preparing');
+  writeE2eState('orphan-action-count', '0');
+  updateOrphanRunMarker(runId);
   try {
     await MediaSession.setMetadata({
       title: 'E2E Track',
@@ -156,10 +187,12 @@ const runE2ePrepareOrphanMediaKey = async () => {
     });
     await MediaSession.setActionHandler({ action: 'play' }, () => {
       mediaKeyActionCount += 1;
+      writeE2eState('orphan-action-count', String(mediaKeyActionCount));
       log('Action received: play');
     });
     await MediaSession.setPlaybackState({ playbackState: 'playing' });
     await MediaSession.setPlaybackState({ playbackState: 'none' });
+    writeE2eState('orphan-phase', 'prepared');
     setE2eOutcome('M:orphan-media-key:prepared');
   } catch (error) {
     handleError(error);
@@ -169,16 +202,28 @@ const runE2ePrepareOrphanMediaKey = async () => {
 };
 
 const runE2eVerifyOrphanMediaKey = () => {
-  if (mediaKeyActionCount > 0) {
+  const storedRunId = readE2eState('orphan-run-id');
+  const storedPhase = readE2eState('orphan-phase');
+  if (!storedRunId || storedPhase !== 'prepared') {
+    setE2eOutcome('M:orphan-media-key:process-reset');
+    return;
+  }
+
+  const storedCount = Number(readE2eState('orphan-action-count') ?? '0');
+  if (storedCount > 0 || mediaKeyActionCount > 0) {
     setE2eOutcome('M:orphan-media-key:unexpected-action');
     return;
   }
+
+  updateOrphanRunMarker(storedRunId);
   setE2eOutcome('M:orphan-media-key:success');
 };
 
 const runE2ePrepareActiveMediaKey = async () => {
   setE2eOutcome('running');
   mediaKeyActionCount = 0;
+  writeE2eState('active-phase', 'preparing');
+  writeE2eState('active-action-count', '0');
   try {
     await MediaSession.setMetadata({
       title: 'E2E Track',
@@ -188,9 +233,11 @@ const runE2ePrepareActiveMediaKey = async () => {
     });
     await MediaSession.setActionHandler({ action: 'pause' }, () => {
       mediaKeyActionCount += 1;
+      writeE2eState('active-action-count', String(mediaKeyActionCount));
       log('Action received: pause');
     });
     await MediaSession.setPlaybackState({ playbackState: 'playing' });
+    writeE2eState('active-phase', 'prepared');
     setE2eOutcome('M:media-key-active:prepared');
   } catch (error) {
     handleError(error);
@@ -200,7 +247,14 @@ const runE2ePrepareActiveMediaKey = async () => {
 };
 
 const runE2eVerifyActiveMediaKey = () => {
-  if (mediaKeyActionCount > 0) {
+  const storedPhase = readE2eState('active-phase');
+  if (storedPhase !== 'prepared') {
+    setE2eOutcome('M:media-key-active:process-reset');
+    return;
+  }
+
+  const storedCount = Number(readE2eState('active-action-count') ?? '0');
+  if (storedCount > 0 || mediaKeyActionCount > 0) {
     setE2eOutcome('M:media-key-active:success');
     return;
   }
