@@ -226,11 +226,11 @@ public class MediaSessionService extends Service {
                 enterEphemeralForegroundAndStop(startId);
                 return START_NOT_STICKY;
             }
-            return START_STICKY;
+            return super.onStartCommand(intent, flags, startId);
         }
 
         MediaButtonReceiver.handleIntent(mediaSession, intent);
-        return START_STICKY;
+        return super.onStartCommand(intent, flags, startId);
     }
 
     private void enterEphemeralForegroundAndStop(int startId) {

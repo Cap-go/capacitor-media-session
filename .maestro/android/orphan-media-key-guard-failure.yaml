@@ -18,6 +18,7 @@ appId: app.capgo.media.session
     timeout: 60000
 - pressKey: Home
 - runScript: scripts/media-play-pause-key.js
+- assertTrue: ${output.mediaKeySent}
 - runScript: scripts/wait-after-media-key.js
 - launchApp:
     stopApp: false

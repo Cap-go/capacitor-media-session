@@ -15,8 +15,8 @@ public class MediaSessionIntentUtilsTest {
     }
 
     @Test
-    public void detectsKeyEventExtra() {
-        assertTrue(MediaSessionIntentUtils.isMediaButtonIntent(null, true));
+    public void ignoresKeyEventExtraWithoutMediaButtonAction() {
+        assertFalse(MediaSessionIntentUtils.isMediaButtonIntent(null, true));
     }
 
     @Test

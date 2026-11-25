@@ -14,10 +14,7 @@ public final class MediaSessionIntentUtils {
     }
 
     static boolean isMediaButtonIntent(String action, boolean hasKeyEventExtra) {
-        if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
-            return true;
-        }
-        return hasKeyEventExtra;
+        return Intent.ACTION_MEDIA_BUTTON.equals(action);
     }
 
     public static boolean shouldAbortOrphanMediaButtonStart(boolean sessionInitialized, Intent intent) {
