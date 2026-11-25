@@ -53,44 +53,59 @@ public class MediaSessionPlugin extends Plugin {
 
     private int mediaServiceBindToken = 0;
 
-    private int pendingMediaServiceBindToken = 0;
+    private ServiceConnection serviceConnection;
 
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder binder) {
-            Context context = getContext();
-            final int connectToken = pendingMediaServiceBindToken;
-            if (!mediaServiceStartRequested || connectToken != mediaServiceBindToken) {
-                if (context != null) {
-                    try {
-                        context.unbindService(serviceConnection);
-                    } catch (IllegalArgumentException ex) {
-                        Log.w(TAG, "Stale service bind already released", ex);
+    private ServiceConnection createServiceConnection(final int bindGeneration) {
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName componentName, IBinder binder) {
+                Context context = getContext();
+                if (!mediaServiceStartRequested || bindGeneration != mediaServiceBindToken) {
+                    if (context != null) {
+                        try {
+                            context.unbindService(this);
+                        } catch (IllegalArgumentException ex) {
+                            Log.w(TAG, "Stale service bind already released", ex);
+                        }
                     }
+                    return;
                 }
-                return;
+
+                mediaServiceStartRequested = false;
+                MediaSessionService.LocalBinder localBinder = (MediaSessionService.LocalBinder) binder;
+                service = localBinder.getService();
+                if (getActivity() == null) {
+                    return;
+                }
+                Intent launchIntent = new Intent(getActivity(), getActivity().getClass());
+                service.connectAndInitialize(MediaSessionPlugin.this, launchIntent);
+                updateServiceMetadata();
+                updateServicePlaybackState();
+                updateServicePositionState();
             }
 
-            mediaServiceStartRequested = false;
-            MediaSessionService.LocalBinder localBinder = (MediaSessionService.LocalBinder) binder;
-            service = localBinder.getService();
-            if (getActivity() == null) {
-                return;
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                Log.d(TAG, "Disconnected from MediaSessionService");
+                service = null;
+                mediaServiceStartRequested = false;
             }
-            Intent launchIntent = new Intent(getActivity(), getActivity().getClass());
-            service.connectAndInitialize(MediaSessionPlugin.this, launchIntent);
-            updateServiceMetadata();
-            updateServicePlaybackState();
-            updateServicePositionState();
+        };
+    }
+
+    private void unbindServiceConnection() {
+        Context context = getContext();
+        if (context == null || serviceConnection == null) {
+            return;
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            Log.d(TAG, "Disconnected from MediaSessionService");
-            service = null;
-            mediaServiceStartRequested = false;
+        try {
+            context.unbindService(serviceConnection);
+        } catch (IllegalArgumentException ex) {
+            Log.w(TAG, "Service already unbound", ex);
         }
-    };
+        serviceConnection = null;
+    }
 
     @Override
     public void load() {
@@ -122,29 +137,20 @@ public class MediaSessionPlugin extends Plugin {
         }
 
         Intent intent = new Intent(context, MediaSessionService.class);
-        pendingMediaServiceBindToken = ++mediaServiceBindToken;
+        final int bindGeneration = ++mediaServiceBindToken;
+        serviceConnection = createServiceConnection(bindGeneration);
         mediaServiceStartRequested = true;
         ContextCompat.startForegroundService(context, intent);
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void stopMediaService() {
-        Context context = getContext();
-        if (context == null) {
-            return;
-        }
-
         if (service != null) {
-            try {
-                context.unbindService(serviceConnection);
-            } catch (IllegalArgumentException ex) {
-                Log.w(TAG, "Service already unbound", ex);
-            }
+            unbindServiceConnection();
             service = null;
         }
 
         mediaServiceStartRequested = false;
-        pendingMediaServiceBindToken = 0;
     }
 
     private void stopPendingMediaServiceStart() {
@@ -155,14 +161,9 @@ public class MediaSessionPlugin extends Plugin {
 
         mediaServiceBindToken++;
         mediaServiceStartRequested = false;
-        pendingMediaServiceBindToken = 0;
+        unbindServiceConnection();
 
         Intent intent = new Intent(context, MediaSessionService.class);
-        try {
-            context.unbindService(serviceConnection);
-        } catch (IllegalArgumentException ex) {
-            Log.w(TAG, "Pending service already unbound", ex);
-        }
         context.stopService(intent);
     }
 
