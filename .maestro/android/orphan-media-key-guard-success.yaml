@@ -1,0 +1,35 @@
+appId: app.capgo.media.session
+---
+- stopApp
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: '.*Harness: ready.*'
+    timeout: 120000
+- scrollUntilVisible:
+    element:
+      id: 'e2e-prepare-orphan-media-key'
+    direction: DOWN
+    timeout: 60000
+- tapOn:
+    id: 'e2e-prepare-orphan-media-key'
+- extendedWaitUntil:
+    visible: '.*M:orphan-media-key:prepared.*'
+    timeout: 60000
+- pressKey: Home
+- runScript: adb shell input keyevent 85
+- extendedWaitUntil:
+    timeout: 20000
+    visible: '.*'
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Harness: ready.*'
+    timeout: 120000
+- scrollUntilVisible:
+    element:
+      id: 'e2e-verify-orphan-media-key'
+    direction: DOWN
+    timeout: 60000
+- tapOn:
+    id: 'e2e-verify-orphan-media-key'
+- assertVisible: '.*M:orphan-media-key:success.*'

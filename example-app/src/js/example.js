@@ -10,6 +10,23 @@ const playbackStateSelect = document.getElementById('playbackStateSelect');
 const metadataArtworkInput = document.getElementById('metadataArtwork');
 const logs = [];
 const maxLogEntries = 50;
+let mediaKeyActionCount = 0;
+
+const e2eOutcomeLabel = document.getElementById('e2e-outcome-label');
+const e2eHarnessReady = document.getElementById('e2e-harness-ready');
+
+const setE2eOutcome = (label) => {
+  if (e2eOutcomeLabel) {
+    e2eOutcomeLabel.textContent = `Outcome: ${label}`;
+    e2eOutcomeLabel.dataset.outcome = label;
+  }
+};
+
+const markHarnessReady = () => {
+  if (e2eHarnessReady) {
+    e2eHarnessReady.textContent = 'Harness: ready';
+  }
+};
 
 const log = (message, level = 'info') => {
   const timestamp = new Date().toISOString().split('T')[1]?.replace('Z', '') ?? '';
@@ -127,6 +144,69 @@ const applyPositionState = async () => {
   log('Position state updated.');
 };
 
+const runE2ePrepareOrphanMediaKey = async () => {
+  setE2eOutcome('running');
+  mediaKeyActionCount = 0;
+  try {
+    await MediaSession.setMetadata({
+      title: 'E2E Track',
+      artist: 'Capgo',
+      album: 'Orphan test',
+      artwork: [],
+    });
+    await MediaSession.setActionHandler({ action: 'play' }, () => {
+      mediaKeyActionCount += 1;
+      log('Action received: play');
+    });
+    await MediaSession.setPlaybackState({ playbackState: 'playing' });
+    await MediaSession.setPlaybackState({ playbackState: 'none' });
+    setE2eOutcome('M:orphan-media-key:prepared');
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:orphan-media-key:error:${message}`);
+  }
+};
+
+const runE2eVerifyOrphanMediaKey = () => {
+  if (mediaKeyActionCount > 0) {
+    setE2eOutcome('M:orphan-media-key:unexpected-action');
+    return;
+  }
+  setE2eOutcome('M:orphan-media-key:success');
+};
+
+const runE2ePrepareActiveMediaKey = async () => {
+  setE2eOutcome('running');
+  mediaKeyActionCount = 0;
+  try {
+    await MediaSession.setMetadata({
+      title: 'E2E Track',
+      artist: 'Capgo',
+      album: 'Active test',
+      artwork: [],
+    });
+    await MediaSession.setActionHandler({ action: 'pause' }, () => {
+      mediaKeyActionCount += 1;
+      log('Action received: pause');
+    });
+    await MediaSession.setPlaybackState({ playbackState: 'playing' });
+    setE2eOutcome('M:media-key-active:prepared');
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:media-key-active:error:${message}`);
+  }
+};
+
+const runE2eVerifyActiveMediaKey = () => {
+  if (mediaKeyActionCount > 0) {
+    setE2eOutcome('M:media-key-active:success');
+    return;
+  }
+  setE2eOutcome('M:media-key-active:no-action');
+};
+
 const setupEventListeners = () => {
   document.getElementById('applyMetadataBtn')?.addEventListener('click', () =>
     applyMetadata().catch(handleError),
@@ -146,6 +226,19 @@ const setupEventListeners = () => {
       logOutput.textContent = '';
     }
     log('Log cleared.');
+  });
+
+  document.getElementById('e2ePrepareOrphanMediaKeyBtn')?.addEventListener('click', () =>
+    runE2ePrepareOrphanMediaKey().catch(handleError),
+  );
+  document.getElementById('e2eVerifyOrphanMediaKeyBtn')?.addEventListener('click', () => {
+    runE2eVerifyOrphanMediaKey();
+  });
+  document.getElementById('e2ePrepareActiveMediaKeyBtn')?.addEventListener('click', () =>
+    runE2ePrepareActiveMediaKey().catch(handleError),
+  );
+  document.getElementById('e2eVerifyActiveMediaKeyBtn')?.addEventListener('click', () => {
+    runE2eVerifyActiveMediaKey();
   });
 
   metadataArtworkInput?.addEventListener('input', syncArtworkPreview);
@@ -192,6 +285,7 @@ const bootstrap = async () => {
 
 bootstrap()
   .then(() => {
+    markHarnessReady();
     if (Capacitor.isNativePlatform()) {
       return CapacitorUpdater.notifyAppReady().catch((error) => {
         console.error('Capgo notifyAppReady failed', error);

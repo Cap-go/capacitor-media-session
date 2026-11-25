@@ -1,0 +1,4 @@
+appId: app.capgo.media.session
+platform:
+  android:
+    disableAnimations: true

@@ -124,6 +124,27 @@
         </div>
         <pre id="logOutput" aria-live="polite"></pre>
       </section>
+
+      <section class="panel" aria-labelledby="e2e-heading">
+        <h2 id="e2e-heading">E2E harness</h2>
+        <p class="hint">Maestro-only checks. Outcome labels reflect real plugin calls.</p>
+        <p id="e2e-harness-ready" class="hint">Harness: booting</p>
+        <p id="e2e-outcome-label" data-testid="e2e-outcome-label">Outcome: idle</p>
+        <div class="actions">
+          <button id="e2ePrepareOrphanMediaKeyBtn" type="button" data-testid="e2e-prepare-orphan-media-key">
+            Prepare orphan media key
+          </button>
+          <button id="e2eVerifyOrphanMediaKeyBtn" type="button" data-testid="e2e-verify-orphan-media-key">
+            Verify orphan media key
+          </button>
+          <button id="e2ePrepareActiveMediaKeyBtn" type="button" data-testid="e2e-prepare-active-media-key">
+            Prepare active media key
+          </button>
+          <button id="e2eVerifyActiveMediaKeyBtn" type="button" data-testid="e2e-verify-active-media-key">
+            Verify active media key
+          </button>
+        </div>
+      </section>
     </div>
 
     <script src="./js/example.js" type="module"></script>
