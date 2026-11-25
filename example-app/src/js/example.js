@@ -50,6 +50,9 @@ const sleep = (ms) =>
 const waitForOrphanGuardIncrement = async (baseline) => {
   const deadline = Date.now() + 15000;
   while (Date.now() < deadline) {
+    if (!MediaSession.getDiagnosticState) {
+      return null;
+    }
     const state = await MediaSession.getDiagnosticState();
     if (state.orphanMediaButtonGuardCount > baseline) {
       return state.orphanMediaButtonGuardCount;
@@ -214,7 +217,9 @@ const runE2ePrepareOrphanMediaKey = async () => {
     await new Promise((resolve) => {
       globalThis.setTimeout(resolve, 750);
     });
-    const diagnostics = await MediaSession.getDiagnosticState();
+    const diagnostics = MediaSession.getDiagnosticState
+      ? await MediaSession.getDiagnosticState()
+      : { orphanMediaButtonGuardCount: 0 };
     writeE2eState('orphan-guard-count-at-prepare', String(diagnostics.orphanMediaButtonGuardCount));
     writeE2eState('orphan-phase', 'prepared');
     setE2eOutcome('M:orphan-media-key:prepared');
@@ -261,6 +266,12 @@ const runE2eVerifyOrphanMediaKey = async () => {
     handleError(error);
     const message = error instanceof Error ? error.message : String(error);
     setE2eOutcome(`M:orphan-media-key:error:${message}`);
+    return;
+  }
+
+  const actionCountAfterWait = Number(readE2eState('orphan-action-count') ?? '0');
+  if (actionCountAfterWait > 0 || mediaKeyActionCount > 0) {
+    setE2eOutcome('M:orphan-media-key:unexpected-action');
     return;
   }
 

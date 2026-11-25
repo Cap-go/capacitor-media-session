@@ -69,5 +69,5 @@ export interface MediaSessionPlugin {
   /**
    * Android diagnostics for integration tests. Other platforms return a zero guard count.
    */
-  getDiagnosticState(): Promise<DiagnosticState>;
+  getDiagnosticState?(): Promise<DiagnosticState>;
 }
