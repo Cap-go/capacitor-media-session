@@ -37,6 +37,10 @@ export interface PositionStateOptions {
   position?: number;
 }
 
+export interface DiagnosticState {
+  orphanMediaButtonGuardCount: number;
+}
+
 export interface MediaSessionPlugin {
   /**
    * Sets metadata of the currently playing media.
@@ -62,4 +66,8 @@ export interface MediaSessionPlugin {
    * @throws An error if the something went wrong
    */
   getPluginVersion(): Promise<{ version: string }>;
+  /**
+   * Android diagnostics for integration tests. Other platforms return a zero guard count.
+   */
+  getDiagnosticState(): Promise<DiagnosticState>;
 }

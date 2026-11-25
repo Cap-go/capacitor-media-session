@@ -82,6 +82,7 @@ npx cap sync
 * [`setActionHandler(...)`](#setactionhandler)
 * [`setPositionState(...)`](#setpositionstate)
 * [`getPluginVersion()`](#getpluginversion)
+* [`getDiagnosticState()`](#getdiagnosticstate)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -164,6 +165,19 @@ Get the native Capacitor plugin version
 --------------------
 
 
+### getDiagnosticState()
+
+```typescript
+getDiagnosticState() => Promise<DiagnosticState>
+```
+
+Android diagnostics for integration tests. Other platforms return a zero guard count.
+
+**Returns:** <code>Promise&lt;<a href="#diagnosticstate">DiagnosticState</a>&gt;</code>
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -215,6 +229,13 @@ Get the native Capacitor plugin version
 | **`duration`**     | <code>number</code> |
 | **`playbackRate`** | <code>number</code> |
 | **`position`**     | <code>number</code> |
+
+
+#### DiagnosticState
+
+| Prop                              | Type                |
+| --------------------------------- | ------------------- |
+| **`orphanMediaButtonGuardCount`** | <code>number</code> |
 
 
 ### Type Aliases

@@ -23,12 +23,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MediaSessionService extends Service {
+
+    private static final AtomicInteger orphanMediaButtonGuardCount = new AtomicInteger();
 
     private static final String TAG = "MediaSessionService";
     private static final String CHANNEL_ID = "playback";
     private static final int NOTIFICATION_ID = 1;
+
+    public static int getOrphanMediaButtonGuardCount() {
+        return orphanMediaButtonGuardCount.get();
+    }
 
     private MediaSessionCompat mediaSession;
     private PlaybackStateCompat.Builder playbackStateBuilder;
@@ -234,6 +241,7 @@ public class MediaSessionService extends Service {
     }
 
     private void enterEphemeralForegroundAndStop(int startId) {
+        orphanMediaButtonGuardCount.incrementAndGet();
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (manager == null) {
             Log.w(TAG, "Notification manager unavailable for ephemeral foreground");

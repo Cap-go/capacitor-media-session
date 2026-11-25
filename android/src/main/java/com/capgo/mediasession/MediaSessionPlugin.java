@@ -49,11 +49,14 @@ public class MediaSessionPlugin extends Plugin {
 
     private MediaSessionService service;
 
+    private boolean mediaServiceStartRequested = false;
+
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
             MediaSessionService.LocalBinder localBinder = (MediaSessionService.LocalBinder) binder;
             service = localBinder.getService();
+            mediaServiceStartRequested = false;
             if (getActivity() == null) {
                 return;
             }
@@ -68,6 +71,7 @@ public class MediaSessionPlugin extends Plugin {
         public void onServiceDisconnected(ComponentName componentName) {
             Log.d(TAG, "Disconnected from MediaSessionService");
             service = null;
+            mediaServiceStartRequested = false;
         }
     };
 
@@ -101,22 +105,38 @@ public class MediaSessionPlugin extends Plugin {
         }
 
         Intent intent = new Intent(context, MediaSessionService.class);
+        mediaServiceStartRequested = true;
         ContextCompat.startForegroundService(context, intent);
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void stopMediaService() {
         Context context = getContext();
-        if (context == null || service == null) {
+        if (context == null) {
             return;
         }
 
-        try {
-            context.unbindService(serviceConnection);
-        } catch (IllegalArgumentException ex) {
-            Log.w(TAG, "Service already unbound", ex);
+        if (service != null) {
+            try {
+                context.unbindService(serviceConnection);
+            } catch (IllegalArgumentException ex) {
+                Log.w(TAG, "Service already unbound", ex);
+            }
+            service = null;
         }
-        service = null;
+
+        mediaServiceStartRequested = false;
+    }
+
+    private void stopPendingMediaServiceStart() {
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+
+        Intent intent = new Intent(context, MediaSessionService.class);
+        context.stopService(intent);
+        mediaServiceStartRequested = false;
     }
 
     private boolean isPlaybackActive() {
@@ -225,8 +245,12 @@ public class MediaSessionPlugin extends Plugin {
         boolean playbackActive = isPlaybackActive();
         if (startServiceOnlyDuringPlayback && service == null && playbackActive) {
             startMediaService();
-        } else if (startServiceOnlyDuringPlayback && service != null && !playbackActive) {
-            stopMediaService();
+        } else if (startServiceOnlyDuringPlayback && !playbackActive) {
+            if (service != null) {
+                stopMediaService();
+            } else if (mediaServiceStartRequested) {
+                stopPendingMediaServiceStart();
+            }
         } else {
             updateServicePlaybackState();
         }
@@ -285,6 +309,17 @@ public class MediaSessionPlugin extends Plugin {
             call.resolve(ret);
         } catch (final Exception e) {
             call.reject("Could not get plugin version", e);
+        }
+    }
+
+    @PluginMethod
+    public void getDiagnosticState(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("orphanMediaButtonGuardCount", MediaSessionService.getOrphanMediaButtonGuardCount());
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get diagnostic state", e);
         }
     }
 }
