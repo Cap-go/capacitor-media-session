@@ -347,6 +347,9 @@ public class MediaSessionService extends Service {
 
     @SuppressLint("RestrictedApi")
     public void update() {
+        if (mediaSession == null) {
+            return;
+        }
         if (possibleActionsUpdate) {
             if (notificationBuilder != null) {
                 notificationBuilder.mActions.clear();

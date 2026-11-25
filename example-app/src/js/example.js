@@ -234,16 +234,24 @@ const runE2eVerifyOrphanMediaKey = async () => {
     return;
   }
 
-  const storedCount = Number(readE2eState('orphan-action-count') ?? '0');
-  if (storedCount > 0 || mediaKeyActionCount > 0) {
-    setE2eOutcome('M:orphan-media-key:unexpected-action');
+  const guardBaseline = Number(readE2eState('orphan-guard-count-at-prepare') ?? '0');
+  let guardObserved;
+  try {
+    guardObserved = await waitForOrphanGuardIncrement(guardBaseline);
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:orphan-media-key:error:${message}`);
+    return;
+  }
+  if (guardObserved === null) {
+    setE2eOutcome('M:orphan-media-key:guard-not-observed');
     return;
   }
 
-  const guardBaseline = Number(readE2eState('orphan-guard-count-at-prepare') ?? '0');
-  const guardObserved = await waitForOrphanGuardIncrement(guardBaseline);
-  if (guardObserved === null) {
-    setE2eOutcome('M:orphan-media-key:guard-not-observed');
+  const storedCount = Number(readE2eState('orphan-action-count') ?? '0');
+  if (storedCount > 0 || mediaKeyActionCount > 0) {
+    setE2eOutcome('M:orphan-media-key:unexpected-action');
     return;
   }
 

@@ -135,6 +135,11 @@ public class MediaSessionPlugin extends Plugin {
         }
 
         Intent intent = new Intent(context, MediaSessionService.class);
+        try {
+            context.unbindService(serviceConnection);
+        } catch (IllegalArgumentException ex) {
+            Log.w(TAG, "Pending service already unbound", ex);
+        }
         context.stopService(intent);
         mediaServiceStartRequested = false;
     }
