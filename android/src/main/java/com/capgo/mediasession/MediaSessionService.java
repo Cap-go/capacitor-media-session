@@ -209,6 +209,11 @@ public class MediaSessionService extends Service {
     }
 
     public void destroy() {
+        if (mediaSession != null) {
+            mediaSession.setActive(false);
+            mediaSession.release();
+            mediaSession = null;
+        }
         stopForeground(true);
         stopSelf();
     }

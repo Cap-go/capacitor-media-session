@@ -8,26 +8,27 @@ appId: app.capgo.media.session
     timeout: 120000
 - scrollUntilVisible:
     element:
-      id: 'e2e-prepare-active-media-key'
+      id: 'e2ePrepareActiveMediaKeyBtn'
     direction: DOWN
     timeout: 60000
 - tapOn:
-    id: 'e2e-prepare-active-media-key'
+    id: 'e2ePrepareActiveMediaKeyBtn'
 - extendedWaitUntil:
     visible: '.*M:media-key-active:prepared.*'
     timeout: 60000
 - pressKey: Home
 - runScript: scripts/media-play-pause-key.js
 - runScript: scripts/wait-after-media-key.js
-- launchApp
+- launchApp:
+    stopApp: false
 - extendedWaitUntil:
     visible: '.*Harness: ready.*'
     timeout: 120000
 - scrollUntilVisible:
     element:
-      id: 'e2e-verify-active-media-key'
+      id: 'e2eVerifyActiveMediaKeyBtn'
     direction: DOWN
     timeout: 60000
 - tapOn:
-    id: 'e2e-verify-active-media-key'
+    id: 'e2eVerifyActiveMediaKeyBtn'
 - assertVisible: '.*M:media-key-active:success.*'

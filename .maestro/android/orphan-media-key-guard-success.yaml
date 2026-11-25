@@ -8,18 +8,19 @@ appId: app.capgo.media.session
     timeout: 120000
 - scrollUntilVisible:
     element:
-      id: 'e2e-prepare-orphan-media-key'
+      id: 'e2ePrepareOrphanMediaKeyBtn'
     direction: DOWN
     timeout: 60000
 - tapOn:
-    id: 'e2e-prepare-orphan-media-key'
+    id: 'e2ePrepareOrphanMediaKeyBtn'
 - extendedWaitUntil:
     visible: '.*M:orphan-media-key:prepared.*'
     timeout: 60000
 - pressKey: Home
 - runScript: scripts/media-play-pause-key.js
 - runScript: scripts/wait-after-media-key.js
-- launchApp
+- launchApp:
+    stopApp: false
 - extendedWaitUntil:
     visible: '.*Harness: ready.*'
     timeout: 120000
@@ -28,9 +29,9 @@ appId: app.capgo.media.session
     timeout: 60000
 - scrollUntilVisible:
     element:
-      id: 'e2e-verify-orphan-media-key'
+      id: 'e2eVerifyOrphanMediaKeyBtn'
     direction: DOWN
     timeout: 60000
 - tapOn:
-    id: 'e2e-verify-orphan-media-key'
+    id: 'e2eVerifyOrphanMediaKeyBtn'
 - assertVisible: '.*M:orphan-media-key:success.*'
