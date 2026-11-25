@@ -35,7 +35,7 @@ We build, improve and fix our plugins with heavy use of AI, so issues usually ge
 - **Remote controls**: `setActionHandler()` handles play, pause, seek, next and previous.
 - **Progress**: `setPositionState()` updates duration, position and playback rate.
 - **Platforms**: iOS, Android and Web. iOS uses MediaPlayer now playing info, Android uses a media session service. Web uses the Media Session API.
-- **Android background safety**: hardware media keys received while playback is `none` no longer crash the app; the service briefly satisfies foreground requirements and exits.
+- **Android background safety**: hardware media keys that start the service without an initialized media session no longer crash the app; the service briefly satisfies foreground requirements and exits.
 
 ## Documentation
 

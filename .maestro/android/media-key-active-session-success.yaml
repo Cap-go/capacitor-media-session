@@ -18,9 +18,7 @@ appId: app.capgo.media.session
     timeout: 60000
 - pressKey: Home
 - runScript: scripts/media-play-pause-key.js
-- extendedWaitUntil:
-    timeout: 20000
-    visible: '.*'
+- runScript: scripts/wait-after-media-key.js
 - launchApp
 - extendedWaitUntil:
     visible: '.*Harness: ready.*'

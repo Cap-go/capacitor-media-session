@@ -201,7 +201,7 @@ const runE2ePrepareOrphanMediaKey = async () => {
   }
 };
 
-const runE2eVerifyOrphanMediaKey = () => {
+const runE2eVerifyOrphanMediaKey = async () => {
   const storedRunId = readE2eState('orphan-run-id');
   const storedPhase = readE2eState('orphan-phase');
   if (!storedRunId || storedPhase !== 'prepared') {
@@ -212,6 +212,15 @@ const runE2eVerifyOrphanMediaKey = () => {
   const storedCount = Number(readE2eState('orphan-action-count') ?? '0');
   if (storedCount > 0 || mediaKeyActionCount > 0) {
     setE2eOutcome('M:orphan-media-key:unexpected-action');
+    return;
+  }
+
+  try {
+    await MediaSession.getPluginVersion();
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:orphan-media-key:error:${message}`);
     return;
   }
 
@@ -246,10 +255,19 @@ const runE2ePrepareActiveMediaKey = async () => {
   }
 };
 
-const runE2eVerifyActiveMediaKey = () => {
+const runE2eVerifyActiveMediaKey = async () => {
   const storedPhase = readE2eState('active-phase');
   if (storedPhase !== 'prepared') {
     setE2eOutcome('M:media-key-active:process-reset');
+    return;
+  }
+
+  try {
+    await MediaSession.getPluginVersion();
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:media-key-active:error:${message}`);
     return;
   }
 
@@ -286,13 +304,13 @@ const setupEventListeners = () => {
     runE2ePrepareOrphanMediaKey().catch(handleError),
   );
   document.getElementById('e2eVerifyOrphanMediaKeyBtn')?.addEventListener('click', () => {
-    runE2eVerifyOrphanMediaKey();
+    runE2eVerifyOrphanMediaKey().catch(handleError);
   });
   document.getElementById('e2ePrepareActiveMediaKeyBtn')?.addEventListener('click', () =>
     runE2ePrepareActiveMediaKey().catch(handleError),
   );
   document.getElementById('e2eVerifyActiveMediaKeyBtn')?.addEventListener('click', () => {
-    runE2eVerifyActiveMediaKey();
+    runE2eVerifyActiveMediaKey().catch(handleError);
   });
 
   metadataArtworkInput?.addEventListener('input', syncArtworkPreview);

@@ -18,9 +18,7 @@ appId: app.capgo.media.session
     timeout: 60000
 - pressKey: Home
 - runScript: scripts/media-play-pause-key.js
-- extendedWaitUntil:
-    timeout: 20000
-    visible: '.*'
+- runScript: scripts/wait-after-media-key.js
 - launchApp
 - extendedWaitUntil:
     visible: '.*Harness: ready.*'
@@ -32,4 +30,4 @@ appId: app.capgo.media.session
     timeout: 60000
 - tapOn:
     id: 'e2e-verify-orphan-media-key'
-- assertNotVisible: '.*M:orphan-media-key:unexpected-action.*'
+- assertVisible: '.*M:orphan-media-key:success.*'

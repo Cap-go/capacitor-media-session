@@ -218,7 +218,7 @@ public class MediaSessionService extends Service {
         if (mediaSession == null) {
             if (MediaSessionIntentUtils.shouldAbortOrphanMediaButtonStart(false, intent)) {
                 Log.i(TAG, "Ignoring media button start without an active media session");
-                enterEphemeralForegroundAndStop();
+                enterEphemeralForegroundAndStop(startId);
                 return START_NOT_STICKY;
             }
             return START_STICKY;
@@ -228,11 +228,11 @@ public class MediaSessionService extends Service {
         return START_STICKY;
     }
 
-    private void enterEphemeralForegroundAndStop() {
+    private void enterEphemeralForegroundAndStop(int startId) {
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (manager == null) {
             Log.w(TAG, "Notification manager unavailable for ephemeral foreground");
-            stopSelf();
+            stopSelf(startId);
             return;
         }
 
@@ -269,7 +269,7 @@ public class MediaSessionService extends Service {
             manager.cancel(NOTIFICATION_ID);
         }
 
-        stopSelf();
+        stopSelf(startId);
     }
 
     public void setPlaybackState(int newPlaybackState) {
