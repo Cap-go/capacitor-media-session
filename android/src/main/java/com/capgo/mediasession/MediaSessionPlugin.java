@@ -138,6 +138,7 @@ public class MediaSessionPlugin extends Plugin {
 
         Intent intent = new Intent(context, MediaSessionService.class);
         final int bindGeneration = ++mediaServiceBindToken;
+        unbindServiceConnection();
         serviceConnection = createServiceConnection(bindGeneration);
         mediaServiceStartRequested = true;
         ContextCompat.startForegroundService(context, intent);
