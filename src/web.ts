@@ -51,4 +51,8 @@ export class MediaSessionWeb extends WebPlugin implements MediaSessionPlugin {
   async getPluginVersion(): Promise<{ version: string }> {
     return { version: 'web' };
   }
+
+  async getDiagnosticState(): Promise<{ orphanMediaButtonGuardCount: number }> {
+    return { orphanMediaButtonGuardCount: 0 };
+  }
 }

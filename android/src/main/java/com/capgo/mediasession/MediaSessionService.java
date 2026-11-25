@@ -23,12 +23,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MediaSessionService extends Service {
+
+    private static final AtomicInteger orphanMediaButtonGuardCount = new AtomicInteger();
 
     private static final String TAG = "MediaSessionService";
     private static final String CHANNEL_ID = "playback";
     private static final int NOTIFICATION_ID = 1;
+
+    public static int getOrphanMediaButtonGuardCount() {
+        return orphanMediaButtonGuardCount.get();
+    }
 
     private MediaSessionCompat mediaSession;
     private PlaybackStateCompat.Builder playbackStateBuilder;
@@ -209,16 +216,73 @@ public class MediaSessionService extends Service {
     }
 
     public void destroy() {
+        if (mediaSession != null) {
+            mediaSession.setActive(false);
+            mediaSession.release();
+            mediaSession = null;
+        }
         stopForeground(true);
         stopSelf();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (mediaSession != null) {
-            MediaButtonReceiver.handleIntent(mediaSession, intent);
+        if (mediaSession == null) {
+            if (MediaSessionIntentUtils.shouldAbortOrphanMediaButtonStart(false, intent)) {
+                Log.i(TAG, "Ignoring media button start without an active media session");
+                enterEphemeralForegroundAndStop(startId);
+                return START_NOT_STICKY;
+            }
+            return super.onStartCommand(intent, flags, startId);
         }
+
+        MediaButtonReceiver.handleIntent(mediaSession, intent);
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void enterEphemeralForegroundAndStop(int startId) {
+        orphanMediaButtonGuardCount.incrementAndGet();
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (manager == null) {
+            Log.w(TAG, "Notification manager unavailable for ephemeral foreground");
+            stopSelf(startId);
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = manager.getNotificationChannel(CHANNEL_ID);
+            if (channel == null) {
+                channel = new NotificationChannel(CHANNEL_ID, "Playback", NotificationManager.IMPORTANCE_LOW);
+                manager.createNotificationChannel(channel);
+            }
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_baseline_volume_up_24)
+            .setContentTitle(" ")
+            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        } else {
+            startForeground(NOTIFICATION_ID, builder.build());
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+        } else {
+            stopForeground(true);
+        }
+
+        if (notificationManager != null) {
+            notificationManager.cancel(NOTIFICATION_ID);
+        } else {
+            manager.cancel(NOTIFICATION_ID);
+        }
+
+        stopSelf(startId);
     }
 
     public void setPlaybackState(int newPlaybackState) {
@@ -283,6 +347,9 @@ public class MediaSessionService extends Service {
 
     @SuppressLint("RestrictedApi")
     public void update() {
+        if (mediaSession == null) {
+            return;
+        }
         if (possibleActionsUpdate) {
             if (notificationBuilder != null) {
                 notificationBuilder.mActions.clear();

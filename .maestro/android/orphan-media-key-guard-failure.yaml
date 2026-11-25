@@ -1,0 +1,35 @@
+appId: app.capgo.media.session
+---
+- stopApp
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: '.*Harness: ready.*'
+    timeout: 120000
+- scrollUntilVisible:
+    element:
+      id: 'e2ePrepareOrphanMediaKeyBtn'
+    direction: DOWN
+    timeout: 60000
+- tapOn:
+    id: 'e2ePrepareOrphanMediaKeyBtn'
+- extendedWaitUntil:
+    visible: '.*M:orphan-media-key:prepared.*'
+    timeout: 60000
+- pressKey: Home
+- pressKey: 'Remote Media Play Pause'
+- runScript: scripts/media-play-pause-key.js
+- assertTrue: ${output.mediaKeySent}
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: '.*Harness: ready.*'
+    timeout: 120000
+- scrollUntilVisible:
+    element:
+      id: 'e2eVerifyOrphanMediaKeyBtn'
+    direction: DOWN
+    timeout: 60000
+- tapOn:
+    id: 'e2eVerifyOrphanMediaKeyBtn'
+- assertVisible: '.*M:orphan-media-key:success.*'

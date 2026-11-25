@@ -12,7 +12,8 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setPlaybackState", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setActionHandler", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setPositionState", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getDiagnosticState", returnType: CAPPluginReturnPromise)
     ]
 
     private var nowPlayingInfo: [String: Any] = [:]
@@ -180,6 +181,10 @@ public class MediaSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Returns the native plugin version.
     @objc func getPluginVersion(_ call: CAPPluginCall) {
         call.resolve(["version": self.pluginVersion])
+    }
+
+    @objc func getDiagnosticState(_ call: CAPPluginCall) {
+        call.resolve(["orphanMediaButtonGuardCount": 0])
     }
 
     private func loadArtwork(from urlString: String, completion: @escaping (UIImage?) -> Void) {

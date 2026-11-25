@@ -10,6 +10,70 @@ const playbackStateSelect = document.getElementById('playbackStateSelect');
 const metadataArtworkInput = document.getElementById('metadataArtwork');
 const logs = [];
 const maxLogEntries = 50;
+let mediaKeyActionCount = 0;
+
+const e2eStoragePrefix = 'capgo-media-session-e2e:';
+const harnessInstanceId = globalThis.crypto?.randomUUID?.() ?? `harness-${Date.now()}`;
+
+const e2eOutcomeLabel = document.getElementById('e2e-outcome-label');
+const e2eHarnessReady = document.getElementById('e2e-harness-ready');
+const e2eOrphanRunMarker = document.getElementById('e2e-orphan-run-marker');
+
+const writeE2eState = (key, value) => {
+  try {
+    sessionStorage.setItem(`${e2eStoragePrefix}${key}`, value);
+  } catch {
+    // Ignore storage errors in the harness.
+  }
+};
+
+const readE2eState = (key) => {
+  try {
+    return sessionStorage.getItem(`${e2eStoragePrefix}${key}`);
+  } catch {
+    return null;
+  }
+};
+
+const updateOrphanRunMarker = (runId) => {
+  if (e2eOrphanRunMarker) {
+    e2eOrphanRunMarker.textContent = runId ? `Orphan run: ${runId}` : 'Orphan run: none';
+    e2eOrphanRunMarker.dataset.runId = runId ?? '';
+  }
+};
+
+const sleep = (ms) =>
+  new Promise((resolve) => {
+    globalThis.setTimeout(resolve, ms);
+  });
+
+const waitForOrphanGuardIncrement = async (baseline) => {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    if (!MediaSession.getDiagnosticState) {
+      return null;
+    }
+    const state = await MediaSession.getDiagnosticState();
+    if (state.orphanMediaButtonGuardCount > baseline) {
+      return state.orphanMediaButtonGuardCount;
+    }
+    await sleep(250);
+  }
+  return null;
+};
+
+const setE2eOutcome = (label) => {
+  if (e2eOutcomeLabel) {
+    e2eOutcomeLabel.textContent = `Outcome: ${label}`;
+    e2eOutcomeLabel.dataset.outcome = label;
+  }
+};
+
+const markHarnessReady = () => {
+  if (e2eHarnessReady) {
+    e2eHarnessReady.textContent = 'Harness: ready';
+  }
+};
 
 const log = (message, level = 'info') => {
   const timestamp = new Date().toISOString().split('T')[1]?.replace('Z', '') ?? '';
@@ -127,6 +191,150 @@ const applyPositionState = async () => {
   log('Position state updated.');
 };
 
+const runE2ePrepareOrphanMediaKey = async () => {
+  setE2eOutcome('running');
+  mediaKeyActionCount = 0;
+  const runId = globalThis.crypto?.randomUUID?.() ?? `orphan-${Date.now()}`;
+  writeE2eState('orphan-run-id', runId);
+  writeE2eState('harness-instance-id', harnessInstanceId);
+  writeE2eState('orphan-phase', 'preparing');
+  writeE2eState('orphan-action-count', '0');
+  updateOrphanRunMarker(runId);
+  try {
+    await MediaSession.setMetadata({
+      title: 'E2E Track',
+      artist: 'Capgo',
+      album: 'Orphan test',
+      artwork: [],
+    });
+    await MediaSession.setActionHandler({ action: 'play' }, () => {
+      mediaKeyActionCount += 1;
+      writeE2eState('orphan-action-count', String(mediaKeyActionCount));
+      log('Action received: play');
+    });
+    await MediaSession.setPlaybackState({ playbackState: 'playing' });
+    await MediaSession.setPlaybackState({ playbackState: 'none' });
+    await new Promise((resolve) => {
+      globalThis.setTimeout(resolve, 750);
+    });
+    const diagnostics = MediaSession.getDiagnosticState
+      ? await MediaSession.getDiagnosticState()
+      : { orphanMediaButtonGuardCount: 0 };
+    writeE2eState('orphan-guard-count-at-prepare', String(diagnostics.orphanMediaButtonGuardCount));
+    writeE2eState('orphan-phase', 'prepared');
+    setE2eOutcome('M:orphan-media-key:prepared');
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:orphan-media-key:error:${message}`);
+  }
+};
+
+const runE2eVerifyOrphanMediaKey = async () => {
+  const storedRunId = readE2eState('orphan-run-id');
+  const storedPhase = readE2eState('orphan-phase');
+  const storedInstanceId = readE2eState('harness-instance-id');
+  if (!storedRunId || storedPhase !== 'prepared' || storedInstanceId !== harnessInstanceId) {
+    setE2eOutcome('M:orphan-media-key:process-reset');
+    return;
+  }
+
+  const guardBaseline = Number(readE2eState('orphan-guard-count-at-prepare') ?? '0');
+  let guardObserved;
+  try {
+    guardObserved = await waitForOrphanGuardIncrement(guardBaseline);
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:orphan-media-key:error:${message}`);
+    return;
+  }
+  if (guardObserved === null) {
+    setE2eOutcome('M:orphan-media-key:guard-not-observed');
+    return;
+  }
+
+  const storedCount = Number(readE2eState('orphan-action-count') ?? '0');
+  if (storedCount > 0 || mediaKeyActionCount > 0) {
+    setE2eOutcome('M:orphan-media-key:unexpected-action');
+    return;
+  }
+
+  try {
+    await MediaSession.getPluginVersion();
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:orphan-media-key:error:${message}`);
+    return;
+  }
+
+  const actionCountAfterWait = Number(readE2eState('orphan-action-count') ?? '0');
+  if (actionCountAfterWait > 0 || mediaKeyActionCount > 0) {
+    setE2eOutcome('M:orphan-media-key:unexpected-action');
+    return;
+  }
+
+  updateOrphanRunMarker(storedRunId);
+  setE2eOutcome('M:orphan-media-key:success');
+};
+
+const runE2ePrepareActiveMediaKey = async () => {
+  setE2eOutcome('running');
+  mediaKeyActionCount = 0;
+  writeE2eState('active-phase', 'preparing');
+  writeE2eState('harness-instance-id', harnessInstanceId);
+  writeE2eState('active-action-count', '0');
+  try {
+    await MediaSession.setMetadata({
+      title: 'E2E Track',
+      artist: 'Capgo',
+      album: 'Active test',
+      artwork: [],
+    });
+    await MediaSession.setActionHandler({ action: 'pause' }, () => {
+      mediaKeyActionCount += 1;
+      writeE2eState('active-action-count', String(mediaKeyActionCount));
+      log('Action received: pause');
+    });
+    await MediaSession.setPlaybackState({ playbackState: 'playing' });
+    await new Promise((resolve) => {
+      globalThis.setTimeout(resolve, 750);
+    });
+    writeE2eState('active-phase', 'prepared');
+    setE2eOutcome('M:media-key-active:prepared');
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:media-key-active:error:${message}`);
+  }
+};
+
+const runE2eVerifyActiveMediaKey = async () => {
+  const storedPhase = readE2eState('active-phase');
+  const storedInstanceId = readE2eState('harness-instance-id');
+  if (storedPhase !== 'prepared' || storedInstanceId !== harnessInstanceId) {
+    setE2eOutcome('M:media-key-active:process-reset');
+    return;
+  }
+
+  try {
+    await MediaSession.getPluginVersion();
+  } catch (error) {
+    handleError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    setE2eOutcome(`M:media-key-active:error:${message}`);
+    return;
+  }
+
+  const storedCount = Number(readE2eState('active-action-count') ?? '0');
+  if (storedCount > 0 || mediaKeyActionCount > 0) {
+    setE2eOutcome('M:media-key-active:success');
+    return;
+  }
+  setE2eOutcome('M:media-key-active:no-action');
+};
+
 const setupEventListeners = () => {
   document.getElementById('applyMetadataBtn')?.addEventListener('click', () =>
     applyMetadata().catch(handleError),
@@ -146,6 +354,19 @@ const setupEventListeners = () => {
       logOutput.textContent = '';
     }
     log('Log cleared.');
+  });
+
+  document.getElementById('e2ePrepareOrphanMediaKeyBtn')?.addEventListener('click', () =>
+    runE2ePrepareOrphanMediaKey().catch(handleError),
+  );
+  document.getElementById('e2eVerifyOrphanMediaKeyBtn')?.addEventListener('click', () => {
+    runE2eVerifyOrphanMediaKey().catch(handleError);
+  });
+  document.getElementById('e2ePrepareActiveMediaKeyBtn')?.addEventListener('click', () =>
+    runE2ePrepareActiveMediaKey().catch(handleError),
+  );
+  document.getElementById('e2eVerifyActiveMediaKeyBtn')?.addEventListener('click', () => {
+    runE2eVerifyActiveMediaKey().catch(handleError);
   });
 
   metadataArtworkInput?.addEventListener('input', syncArtworkPreview);
@@ -192,6 +413,7 @@ const bootstrap = async () => {
 
 bootstrap()
   .then(() => {
+    markHarnessReady();
     if (Capacitor.isNativePlatform()) {
       return CapacitorUpdater.notifyAppReady().catch((error) => {
         console.error('Capgo notifyAppReady failed', error);
