@@ -225,19 +225,21 @@ public class MediaSessionService extends Service {
         stopSelf();
     }
 
+    // The service only works while the plugin is bound to it. If the process dies, a
+    // sticky restart would recreate it without a page and without a media session,
+    // keeping the old foreground notification with controls that do nothing.
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (mediaSession == null) {
             if (MediaSessionIntentUtils.shouldAbortOrphanMediaButtonStart(false, intent)) {
                 Log.i(TAG, "Ignoring media button start without an active media session");
                 enterEphemeralForegroundAndStop(startId);
-                return START_NOT_STICKY;
             }
-            return super.onStartCommand(intent, flags, startId);
+            return START_NOT_STICKY;
         }
 
         MediaButtonReceiver.handleIntent(mediaSession, intent);
-        return super.onStartCommand(intent, flags, startId);
+        return START_NOT_STICKY;
     }
 
     private void enterEphemeralForegroundAndStop(int startId) {
